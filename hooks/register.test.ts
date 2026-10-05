@@ -32,14 +32,14 @@ test('the band keys cycle effort (wrapping) and model; the footer shows both', a
   expect(await shown()).toMatch(/^focus & Opus 5\.5 /)
 
   // Settings are empty in the test, so the engine's level falls back to high.
-  expect(await shown()).toContain('▰▰▰▱▱ high')
+  expect(await shown()).toContain('ϟϟϟ·· high')
   await band.press({ key: 'effort-up' })
-  expect(await shown()).toContain('▰▰▰▰▱ xhigh')
+  expect(await shown()).toContain('ϟϟϟϟ· xhigh')
   await band.press({ key: 'effort-up' })
   await band.press({ key: 'effort-up' })
-  expect(await shown()).toContain('▰▱▱▱▱ low')
+  expect(await shown()).toContain('ϟ···· low')
   await band.press({ key: 'effort-down' })
-  expect(await shown()).toContain('▰▰▰▰▰ max')
+  expect(await shown()).toContain('ϟϟϟϟϟ max')
 
   // The main thread's next request goes out at the picked level; a subagent's is left alone.
   const step = { turnId: 't', index: 0, model: 'claude-opus-5-5', effort: 'high', messageCount: 1 } as const
@@ -78,7 +78,7 @@ test('alt+. toggles ultracode through /effort, following a typed /effort ultraco
   await $.command.run({ ...typed, args: 'ultracode' })
   await band.press({ key: 'ultracode' })
   expect(ran.at(-1)).toBe('effort ultracode off')
-  expect(await shown()).toContain('▰▰▰▰▱ xhigh')
+  expect(await shown()).toContain('ϟϟϟϟ· xhigh')
 })
 
 test('/model-cycle lists the keys', async ($, on) => {

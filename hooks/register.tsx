@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-// Footer, right corner: `Opus 5.5 ▰▰▰▱▱ high`, meter and word colored cool to hot.
+// Footer, right corner: `Opus 5.5 ϟϟϟ·· high`, meter and word colored cool to hot.
 // alt+up / alt+down cycle the model (through /model), alt+left / alt+right the
 // effort, alt+. toggles ultracode (`/effort ultracode on|off`). A key
 // reaches a mod only through a Button in the band above the prompt naming an engine
@@ -193,8 +193,8 @@ export const register: Register = on => {
       <Box>
         {e.props.modes.length > 0 && <Text dimColor>{e.props.modes.join(' & ')} & </Text>}
         <Text {...(level === 'max' ? hot : { dimColor: true })}>{displayName(model)} </Text>
-        <Text {...hot}>{'▰'.repeat(filled)}</Text>
-        <Text dimColor>{'▱'.repeat(LEVELS.length - filled)}</Text>
+        <Text {...hot}>{'ϟ'.repeat(filled)}</Text>
+        <Text dimColor>{'·'.repeat(LEVELS.length - filled)}</Text>
         <Text {...hot} bold={level === 'max'}> {level}</Text>
       </Box>
     )

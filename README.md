@@ -3,14 +3,14 @@
 A [Claude Code mod](https://code.claude.com/docs) that lets you switch **model**, **effort** and **ultracode** with one keystroke, and shows the current model and effort in the footer.
 
 ```
-                                                        Opus 5.5 ▰▰▰▰▱ xhigh
+                                                        Opus 5.5 ϟϟϟϟ· xhigh
 ```
 
 ## Why
 
 Changing model or effort means typing `/model sonnet` or `/effort high`, or opening a picker. That is slow enough that you stop doing it, so you run everything at one setting. This mod makes it a keypress: drop to low effort for a quick edit, push to max for a hard bug, jump back.
 
-The footer meter (`▰▰▰▱▱ high`, colored cool to hot from your theme) means you always see what you're running at.
+The footer meter (`ϟϟϟ·· high`, colored cool to hot from your theme) means you always see what you're running at.
 
 ## Install
 
