@@ -10,7 +10,7 @@ A [Claude Code mod](https://code.claude.com/docs) that lets you switch **model**
 
 Changing model or effort means typing `/model sonnet` or `/effort high`, or opening a picker. That is slow enough that you stop doing it, so you run everything at one setting. This mod makes it a keypress: drop to low effort for a quick edit, push to max for a hard bug, jump back.
 
-The footer meter (`ϟϟϟ·· high`, colored cool to hot from your theme) means you always see what you're running at.
+The footer meter (`ϟϟϟ·· high`: one bolt per effort level out of five, one color per level, with xhigh shimmering and max cycling a rainbow) means you always see what you're running at.
 
 ## Install
 
@@ -91,6 +91,7 @@ claude --plugin-dir ~/.claude/mods/model-cycle
 
 To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/model-cycle" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
 
+- **Meter glyphs:** edit `ϟ` (filled) and `·` (empty) in the `SessionMode` render hook of `hooks/register.tsx`. If `ϟ` renders as a letter in your font, swap it for `↯`.
 - **Model list:** edit `MODELS` at the top of `hooks/register.tsx` (`fable, opus, sonnet, haiku`).
 - **Different keys:** change them in `keybindings.json` (keep the `strip:jump5-9` actions), and update `BINDINGS`, `KEYS` and `KEY_TABLE` in `hooks/register.tsx`.
 - **Check your change:** `claude plugin validate .` and `claude plugin test .`

@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-// Footer, right corner: `Opus 5.5 ϟϟϟ·· high`, meter and word colored cool to hot.
+// Footer, right corner: `Opus 5.5 ϟϟϟ·· high`, model, meter and word in the level's color, xhigh shimmering, max cycling a rainbow.
 // alt+up / alt+down cycle the model (through /model), alt+left / alt+right the
 // effort, alt+. toggles ultracode (`/effort ultracode on|off`). A key
 // reaches a mod only through a Button in the band above the prompt naming an engine
@@ -11,8 +11,13 @@ import type { EngineInterface, Register } from 'claude-code'
 // ponytail: fixed list; edit it when your account's models change
 const MODELS = ['fable', 'opus', 'sonnet', 'haiku']
 const LEVELS = ['low', 'medium', 'high', 'xhigh', 'max']
-// Theme keys, cool to hot, so the colors follow the person's theme.
-const HEAT: Record<string, string> = { low: 'inactive', medium: 'success', high: 'warning', xhigh: 'claude', max: 'error' }
+const HEAT: Record<string, string> = { low: '#D7D787', medium: '#AED75F', high: '#87D7FF', xhigh: '#AF87FF' }
+// Max cycles these, each character one step ahead of the one before, a step every STEP_MS.
+const RAINBOW = ['#D7005F', '#FFAF5F', '#D7D787', '#AED75F', '#87D7FF', '#87AFFF', '#AF87FF']
+// Xhigh sweeps one light character along the string, then rests SHIMMER_REST steps.
+const SHIMMER = '#DEC8FF'
+const SHIMMER_REST = 3
+const STEP_MS = 110
 
 // The keys' pick, sent on that model's main-thread requests: this session only,
 // nothing saved and no /effort row in the transcript.
@@ -27,6 +32,8 @@ const ultra = atom({ plugin: 'model-cycle', key: 'ultra' } as const, false)
 
 // The model the footer last drew, so the band can tell when alt+p changed it.
 let drawnModel = ''
+// Whether the footer last drew xhigh or max, the levels that animate.
+let animated = false
 
 const wrap = (list: string[], at: number, dir: number) => list[(at + dir + list.length) % list.length]!
 
@@ -132,6 +139,11 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'model-cycle', description: `Keys: ${KEYS} · "setup" binds them`, argumentHint: '[setup]' })
 
+    // ponytail: one standing timer; it only redraws while max is showing
+    $.clock.every(STEP_MS, () => {
+      if (animated) $.ui.invalidate('ui.render')
+    })
+
     return next(e)
   })
 
@@ -185,17 +197,31 @@ export const register: Register = on => {
     const chosen = await read($, pick)
     const level = chosen?.model === model ? chosen.level : await engineLevel($, model)
     const filled = LEVELS.indexOf(level) + 1
-    const color = HEAT[level]
-    const hot = color === undefined ? { dimColor: true } : { color }
+    animated = level === 'xhigh' || level === 'max'
+    const step = Math.floor((await $.clock.now()) / STEP_MS)
     const { Box, Text } = $.ui.resolve(e)
+    const name = `${displayName(model)} `
+    const total = name.length + filled + level.length
+    // The level's color. Max: each character its own rainbow step; xhigh: one light
+    // character sweeping along. Both run on from `from`, so the model, meter and word
+    // move as one string.
+    const color = (at: number) =>
+      level === 'max'
+        ? RAINBOW[(step + at) % RAINBOW.length]
+        : at === step % (total + SHIMMER_REST) ? SHIMMER : HEAT[level]
+    const paint = (text: string, from: number) =>
+      animated
+        ? [...text].map((c, i) => <Text key={i} color={color(from + i)}>{c}</Text>)
+        : <Text color={HEAT[level]}>{text}</Text>
 
     return (
       <Box>
         {e.props.modes.length > 0 && <Text dimColor>{e.props.modes.join(' & ')} & </Text>}
-        <Text {...(level === 'max' ? hot : { dimColor: true })}>{displayName(model)} </Text>
-        <Text {...hot}>{'ϟ'.repeat(filled)}</Text>
+        {paint(name, 0)}
+        {paint('ϟ'.repeat(filled), name.length)}
         <Text dimColor>{'·'.repeat(LEVELS.length - filled)}</Text>
-        <Text {...hot} bold={level === 'max'}> {level}</Text>
+        <Text> </Text>
+        {paint(level, name.length + filled)}
       </Box>
     )
   })

@@ -19,6 +19,7 @@ test('the band keys cycle effort (wrapping) and model; the footer shows both', a
   })
   on('session.model', () => ({ value: 'claude-opus-5-5' }))
   on('settings.read', () => ({ value: {} }))
+  on('clock.now', () => ({ value: 0 }))
   on('ui.render', { component: 'AbovePrompt' }, (): RenderElement => ({ type: 'Box', children: [] }))
   on('command.run', ($, e) => {
     ran.push(`${e.command} ${e.args}`)
@@ -31,15 +32,25 @@ test('the band keys cycle effort (wrapping) and model; the footer shows both', a
 
   expect(await shown()).toMatch(/^focus & Opus 5\.5 /)
 
+  const colors = async () => (await footer.findAll({ type: 'Text' })).map(t => t.props?.color).filter(Boolean)
+
   // Settings are empty in the test, so the engine's level falls back to high.
   expect(await shown()).toContain('ϟϟϟ·· high')
+  expect(await colors()).toEqual(['#87D7FF', '#87D7FF', '#87D7FF'])
   await band.press({ key: 'effort-up' })
   expect(await shown()).toContain('ϟϟϟϟ· xhigh')
+  // The clock is frozen at step 0, so the shimmer sits on the first character.
+  const xhigh = await colors()
+  expect(xhigh.length).toBe('Opus 5.5 '.length + 4 + 'xhigh'.length)
+  expect(xhigh[0]).toBe('#DEC8FF')
+  expect(new Set(xhigh.slice(1))).toEqual(new Set(['#AF87FF']))
   await band.press({ key: 'effort-up' })
   await band.press({ key: 'effort-up' })
   expect(await shown()).toContain('ϟ···· low')
   await band.press({ key: 'effort-down' })
   expect(await shown()).toContain('ϟϟϟϟϟ max')
+  // At max each character is a step further round the rainbow (the clock is frozen at step 0).
+  expect((await colors()).slice(0, 3)).toEqual(['#D7005F', '#FFAF5F', '#D7D787'])
 
   // The main thread's next request goes out at the picked level; a subagent's is left alone.
   const step = { turnId: 't', index: 0, model: 'claude-opus-5-5', effort: 'high', messageCount: 1 } as const
@@ -57,6 +68,7 @@ test('alt+. toggles ultracode through /effort, following a typed /effort ultraco
   const ran: string[] = []
   on('session.model', () => ({ value: 'claude-opus-5-5' }))
   on('settings.read', () => ({ value: {} }))
+  on('clock.now', () => ({ value: 0 }))
   on('ui.render', { component: 'AbovePrompt' }, (): RenderElement => ({ type: 'Box', children: [] }))
   on('command.run', ($, e) => {
     ran.push(`${e.command} ${e.args}`)
