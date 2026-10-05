@@ -6,6 +6,8 @@ A [Claude Code mod](https://code.claude.com/docs) that lets you switch **model**
                                                         Opus 5.5 ϟϟϟϟ· xhigh
 ```
 
+![model-cycle demo: cycling model, effort and ultracode with the keyboard](assets/demo.gif)
+
 ## Why
 
 Changing model or effort means typing `/model sonnet` or `/effort high`, or opening a picker. That is slow enough that you stop doing it, so you run everything at one setting. This mod makes it a keypress: drop to low effort for a quick edit, push to max for a hard bug, jump back.
