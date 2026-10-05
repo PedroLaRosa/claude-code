@@ -2,10 +2,6 @@
 
 A [Claude Code mod](https://code.claude.com/docs) that lets you switch **model**, **effort** and **ultracode** with one keystroke, and shows the current model and effort in the footer.
 
-```
-                                                        Opus 5.5 ϟϟϟϟ· xhigh
-```
-
 ![model-cycle demo: cycling model, effort and ultracode with the keyboard](assets/demo.gif)
 
 ## Why
@@ -63,17 +59,17 @@ It merges five keys into `~/.claude/keybindings.json` and never overwrites a key
 
 </details>
 
-**Last step: make your terminal send Alt.** On macOS, Option usually types a symbol instead of acting as Alt. Turn on "Option as Alt" in your terminal (iTerm2: Profiles → Keys; Terminal.app: *Use Option as Meta key*; kitty: `macos_option_as_alt yes`). To change only `alt+.` in kitty, leave that setting off and add `map opt+period send_text all \x1b.` to `kitty.conf`.
+**Last step: make your terminal send Alt.** On macOS, Option usually types a symbol instead of acting as Alt. Turn on "Option as Alt" in your terminal (iTerm2: Profiles → Keys; Terminal.app: _Use Option as Meta key_; kitty: `macos_option_as_alt yes`). To change only `alt+.` in kitty, leave that setting off and add `map opt+period send_text all \x1b.` to `kitty.conf`.
 
 Update with `claude plugin update model-cycle@pedro-la-rosa-mods`. Remove with `claude plugin uninstall model-cycle@pedro-la-rosa-mods` (and delete the five keys from `keybindings.json`).
 
 ## Keys
 
-| Key | Action |
-|---|---|
-| `alt+↑` / `alt+↓` | previous / next model (runs `/model`) |
-| `alt+←` / `alt+→` | lower / higher effort (wraps around) |
-| `alt+.` | ultracode on / off (runs `/effort ultracode`) |
+| Key               | Action                                        |
+| ----------------- | --------------------------------------------- |
+| `alt+↑` / `alt+↓` | previous / next model (runs `/model`)         |
+| `alt+←` / `alt+→` | lower / higher effort (wraps around)          |
+| `alt+.`           | ultracode on / off (runs `/effort ultracode`) |
 
 `/model-cycle` prints this table inside Claude Code; it also shows in `/help` and the `/` menu.
 
