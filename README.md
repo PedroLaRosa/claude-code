@@ -1,4 +1,4 @@
-# model-effort
+# model-cycle
 
 A [Claude Code mod](https://code.claude.com/docs) that lets you switch **model**, **effort** and **ultracode** with one keystroke, and shows the current model and effort in the footer.
 
@@ -22,9 +22,9 @@ Needs a Claude Code version with mods (built on 2.1.289). **Pick one:**
 Paste this into a Claude Code session and it does the rest:
 
 ```text
-Install the Claude Code mod from github.com/PedroLaRosa/claude-code-model-effort:
-1. Run `claude plugin marketplace add PedroLaRosa/claude-code-model-effort`, then
-   `claude plugin install model-effort@pedro-la-rosa-mods`.
+Install the Claude Code mod from github.com/PedroLaRosa/claude-code-model-cycle:
+1. Run `claude plugin marketplace add PedroLaRosa/claude-code-model-cycle`, then
+   `claude plugin install model-cycle@pedro-la-rosa-mods`.
 2. Merge these into the "Global" bindings of ~/.claude/keybindings.json (create the
    file if missing, keep every existing binding, don't overwrite a key that is already
    bound; tell me about any conflict):
@@ -39,22 +39,22 @@ Install the Claude Code mod from github.com/PedroLaRosa/claude-code-model-effort
 <summary><strong>Run commands</strong></summary>
 
 ```bash
-claude plugin marketplace add PedroLaRosa/claude-code-model-effort
-claude plugin install model-effort@pedro-la-rosa-mods
+claude plugin marketplace add PedroLaRosa/claude-code-model-cycle
+claude plugin install model-cycle@pedro-la-rosa-mods
 ```
 
 Or from inside a session:
 
 ```
-/plugin marketplace add PedroLaRosa/claude-code-model-effort
-/plugin install model-effort@pedro-la-rosa-mods
+/plugin marketplace add PedroLaRosa/claude-code-model-cycle
+/plugin install model-cycle@pedro-la-rosa-mods
 /reload-plugins
 ```
 
 Then bind the keys with one command (a mod can't ship keybindings, so it writes them for you):
 
 ```
-/model-effort setup
+/model-cycle setup
 ```
 
 It merges five keys into `~/.claude/keybindings.json` and never overwrites a key you already bound to something else.
@@ -63,7 +63,7 @@ It merges five keys into `~/.claude/keybindings.json` and never overwrites a key
 
 **Last step: make your terminal send Alt.** On macOS, Option usually types a symbol instead of acting as Alt. Turn on "Option as Alt" in your terminal (iTerm2: Profiles → Keys; Terminal.app: *Use Option as Meta key*; kitty: `macos_option_as_alt yes`). To change only `alt+.` in kitty, leave that setting off and add `map opt+period send_text all \x1b.` to `kitty.conf`.
 
-Update with `claude plugin update model-effort@pedro-la-rosa-mods`. Remove with `claude plugin uninstall model-effort@pedro-la-rosa-mods` (and delete the five keys from `keybindings.json`).
+Update with `claude plugin update model-cycle@pedro-la-rosa-mods`. Remove with `claude plugin uninstall model-cycle@pedro-la-rosa-mods` (and delete the five keys from `keybindings.json`).
 
 ## Keys
 
@@ -73,7 +73,7 @@ Update with `claude plugin update model-effort@pedro-la-rosa-mods`. Remove with 
 | `alt+←` / `alt+→` | lower / higher effort (wraps around) |
 | `alt+.` | ultracode on / off (runs `/effort ultracode`) |
 
-`/model-effort` prints this table inside Claude Code; it also shows in `/help` and the `/` menu.
+`/model-cycle` prints this table inside Claude Code; it also shows in `/help` and the `/` menu.
 
 - **Effort** changes apply to this session only. Nothing is saved.
 - **Model** changes run `/model`, so the new model becomes your saved default, same as typing it.
@@ -85,11 +85,11 @@ Update with `claude plugin update model-effort@pedro-la-rosa-mods`. Remove with 
 Clone it and load the folder directly instead of installing:
 
 ```bash
-git clone https://github.com/PedroLaRosa/claude-code-model-effort ~/.claude/mods/model-effort
-claude --plugin-dir ~/.claude/mods/model-effort
+git clone https://github.com/PedroLaRosa/claude-code-model-cycle ~/.claude/mods/model-cycle
+claude --plugin-dir ~/.claude/mods/model-cycle
 ```
 
-To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/model-effort" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
+To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/model-cycle" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
 
 - **Model list:** edit `MODELS` at the top of `hooks/register.tsx` (`fable, opus, sonnet, haiku`).
 - **Different keys:** change them in `keybindings.json` (keep the `strip:jump5-9` actions), and update `BINDINGS`, `KEYS` and `KEY_TABLE` in `hooks/register.tsx`.

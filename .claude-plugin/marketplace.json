@@ -7,7 +7,7 @@
   "description": "Pedro La Rosa's Claude Code mods.",
   "plugins": [
     {
-      "name": "model-effort",
+      "name": "model-cycle",
       "source": "./",
       "description": "Switch model, effort and ultracode with one keystroke; shows the model and effort in the footer.",
       "category": "productivity",

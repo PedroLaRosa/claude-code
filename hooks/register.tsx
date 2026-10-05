@@ -16,14 +16,14 @@ const HEAT: Record<string, string> = { low: 'inactive', medium: 'success', high:
 
 // The keys' pick, sent on that model's main-thread requests: this session only,
 // nothing saved and no /effort row in the transcript.
-const pick = atom({ plugin: 'model-effort', key: 'pick' } as const, null)
+const pick = atom({ plugin: 'model-cycle', key: 'pick' } as const, null)
 // The level the engine itself last sent on the main thread.
-const base = atom({ plugin: 'model-effort', key: 'base' } as const, null)
+const base = atom({ plugin: 'model-cycle', key: 'base' } as const, null)
 // Whether ultracode was last asked on. The engine's flag has no reader and /effort
 // answers a mod with no text, so this is the ask, not the truth; the engine draws the
 // truth itself (`· ultracode` above the prompt).
 // ponytail: a refused `on` or the /effort slider's tab toggle costs one press to resync
-const ultra = atom({ plugin: 'model-effort', key: 'ultra' } as const, false)
+const ultra = atom({ plugin: 'model-cycle', key: 'ultra' } as const, false)
 
 // The model the footer last drew, so the band can tell when alt+p changed it.
 let drawnModel = ''
@@ -72,7 +72,7 @@ function displayName(model: string): string {
 }
 
 // The `?` shortcuts list takes no plugin rows, so the keys live in /help and the
-// typeahead as /model-effort's description, and in full as its output.
+// typeahead as /model-cycle's description, and in full as its output.
 // ponytail: copied from ~/.claude/keybindings.json; edit both when a key moves
 const KEYS = 'alt+↑/↓ model · alt+←/→ effort · alt+. ultracode'
 const KEY_TABLE = [
@@ -92,7 +92,7 @@ const BINDINGS: Record<string, string> = {
 
 type KeybindingsFile = { bindings?: { context: string; bindings: Record<string, string | null> }[] }
 
-// `/model-effort setup`: merges BINDINGS into ~/.claude/keybindings.json, leaving
+// `/model-cycle setup`: merges BINDINGS into ~/.claude/keybindings.json, leaving
 // any key the person already bound to something else alone.
 async function setupKeys($: EngineInterface): Promise<string> {
   const path = `${await $.env.get('HOME')}/.claude/keybindings.json`
@@ -101,7 +101,7 @@ async function setupKeys($: EngineInterface): Promise<string> {
     try {
       file = JSON.parse(await $.fs.read(path))
     } catch {
-      return `${path} is not valid JSON, so nothing was changed. Fix it and run /model-effort setup again.`
+      return `${path} is not valid JSON, so nothing was changed. Fix it and run /model-cycle setup again.`
     }
   }
   const all = (file.bindings ??= [])
@@ -130,12 +130,12 @@ async function setupKeys($: EngineInterface): Promise<string> {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'model-effort', description: `Keys: ${KEYS} · "setup" binds them`, argumentHint: '[setup]' })
+    await $.command.register({ name: 'model-cycle', description: `Keys: ${KEYS} · "setup" binds them`, argumentHint: '[setup]' })
 
     return next(e)
   })
 
-  on('command.run', { command: 'model-effort' }, async ($, e) => ({
+  on('command.run', { command: 'model-cycle' }, async ($, e) => ({
     text: e.args.trim() === 'setup' ? await setupKeys($) : KEY_TABLE,
   }))
 

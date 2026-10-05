@@ -25,8 +25,8 @@ test('the band keys cycle effort (wrapping) and model; the footer shows both', a
     return { text: '' }
   })
 
-  const band = await $.ui.mount({ plugin: 'model-effort', surface: 'terminal', component: 'AbovePrompt', props: BAND })
-  const footer = await $.ui.mount({ plugin: 'model-effort', surface: 'terminal', component: 'SessionMode', props: { modes: ['focus'] } })
+  const band = await $.ui.mount({ plugin: 'model-cycle', surface: 'terminal', component: 'AbovePrompt', props: BAND })
+  const footer = await $.ui.mount({ plugin: 'model-cycle', surface: 'terminal', component: 'SessionMode', props: { modes: ['focus'] } })
   const shown = async () => (await footer.findAll({ type: 'Text' })).map(t => t.text).join('')
 
   expect(await shown()).toMatch(/^focus & Opus 5\.5 /)
@@ -63,8 +63,8 @@ test('alt+. toggles ultracode through /effort, following a typed /effort ultraco
     return {}
   })
 
-  const band = await $.ui.mount({ plugin: 'model-effort', surface: 'terminal', component: 'AbovePrompt', props: BAND })
-  const footer = await $.ui.mount({ plugin: 'model-effort', surface: 'terminal', component: 'SessionMode', props: { modes: [] } })
+  const band = await $.ui.mount({ plugin: 'model-cycle', surface: 'terminal', component: 'AbovePrompt', props: BAND })
+  const footer = await $.ui.mount({ plugin: 'model-cycle', surface: 'terminal', component: 'SessionMode', props: { modes: [] } })
   const shown = async () => (await footer.findAll({ type: 'Text' })).map(t => t.text).join('')
 
   await band.press({ key: 'ultracode' })
@@ -81,15 +81,15 @@ test('alt+. toggles ultracode through /effort, following a typed /effort ultraco
   expect(await shown()).toContain('▰▰▰▰▱ xhigh')
 })
 
-test('/model-effort lists the keys', async ($, on) => {
+test('/model-cycle lists the keys', async ($, on) => {
   on('session.model', () => ({ value: 'claude-opus-5-5' }))
   const typed = { origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 120 } } as const
-  const { text } = await $.command.run({ ...typed, command: 'model-effort', args: '' })
+  const { text } = await $.command.run({ ...typed, command: 'model-cycle', args: '' })
   expect(text).toContain('alt+.')
   expect(text).toContain('alt+← / alt+→')
 })
 
-test('/model-effort setup merges the keys into keybindings.json and keeps what is there', async ($, on) => {
+test('/model-cycle setup merges the keys into keybindings.json and keeps what is there', async ($, on) => {
   let file: string | undefined = JSON.stringify({
     bindings: [
       { context: 'Chat', bindings: { 'ctrl+e': 'chat:externalEditor' } },
@@ -106,7 +106,7 @@ test('/model-effort setup merges the keys into keybindings.json and keeps what i
     return { value: undefined }
   })
   const typed = { origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 120 } } as const
-  const setup = () => $.command.run({ ...typed, command: 'model-effort', args: 'setup' })
+  const setup = () => $.command.run({ ...typed, command: 'model-cycle', args: 'setup' })
 
   const first = await setup()
   const bindings = JSON.parse(file!).bindings
