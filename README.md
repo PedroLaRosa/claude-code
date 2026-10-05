@@ -12,6 +12,59 @@ Changing model or effort means typing `/model sonnet` or `/effort high`, or open
 
 The footer meter (`▰▰▰▱▱ high`, colored cool to hot from your theme) means you always see what you're running at.
 
+## Install
+
+Needs a Claude Code version with mods (built on 2.1.289). **Pick one:**
+
+<details open>
+<summary><strong>Paste into Claude Code</strong></summary>
+
+Paste this into a Claude Code session and it does the rest:
+
+```text
+Install the Claude Code mod from github.com/PedroLaRosa/claude-code-model-effort:
+1. Run `claude plugin marketplace add PedroLaRosa/claude-code-model-effort`, then
+   `claude plugin install model-effort@pedro-la-rosa-mods`.
+2. Merge these into the "Global" bindings of ~/.claude/keybindings.json (create the
+   file if missing, keep every existing binding, don't overwrite a key that is already
+   bound; tell me about any conflict):
+   alt+up → strip:jump6, alt+down → strip:jump7, alt+left → strip:jump8,
+   alt+right → strip:jump9, alt+. → strip:jump5
+3. Tell me to run /reload-plugins.
+```
+
+</details>
+
+<details>
+<summary><strong>Run commands</strong></summary>
+
+```bash
+claude plugin marketplace add PedroLaRosa/claude-code-model-effort
+claude plugin install model-effort@pedro-la-rosa-mods
+```
+
+Or from inside a session:
+
+```
+/plugin marketplace add PedroLaRosa/claude-code-model-effort
+/plugin install model-effort@pedro-la-rosa-mods
+/reload-plugins
+```
+
+Then bind the keys with one command (a mod can't ship keybindings, so it writes them for you):
+
+```
+/model-effort setup
+```
+
+It merges five keys into `~/.claude/keybindings.json` and never overwrites a key you already bound to something else.
+
+</details>
+
+**Last step: make your terminal send Alt.** On macOS, Option usually types a symbol instead of acting as Alt. Turn on "Option as Alt" in your terminal (iTerm2: Profiles → Keys; Terminal.app: *Use Option as Meta key*; kitty: `macos_option_as_alt yes`). To change only `alt+.` in kitty, leave that setting off and add `map opt+period send_text all \x1b.` to `kitty.conf`.
+
+Update with `claude plugin update model-effort@pedro-la-rosa-mods`. Remove with `claude plugin uninstall model-effort@pedro-la-rosa-mods` (and delete the five keys from `keybindings.json`).
+
 ## Keys
 
 | Key | Action |
@@ -25,74 +78,26 @@ The footer meter (`▰▰▰▱▱ high`, colored cool to hot from your theme) m
 - **Effort** changes apply to this session only. Nothing is saved.
 - **Model** changes run `/model`, so the new model becomes your saved default, same as typing it.
 - **Ultracode** needs dynamic workflows enabled and a model that supports it. If Claude Code refuses, the press does nothing; `/effort ultracode on` shows why.
+- These keys replace Claude Code's defaults for `alt+↑/↓` (diff file list) and `alt+←/→` (word jumps in the prompt).
 
-## Install
+## Hack on it
 
-Needs a Claude Code version with mods (built on 2.1.289).
+Clone it and load the folder directly instead of installing:
 
-**1. Get the mod**
-
-```sh
+```bash
 git clone https://github.com/PedroLaRosa/claude-code-model-effort ~/.claude/mods/model-effort
+claude --plugin-dir ~/.claude/mods/model-effort
 ```
 
-**2. Load it in every session** — add to `~/.claude/settings.json`:
+To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/model-effort" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
 
-```json
-{
-  "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/model-effort"
-  }
-}
-```
-
-(Or try it once with `claude --plugin-dir ~/.claude/mods/model-effort`.)
-
-**3. Bind the keys** — a mod can't ship keybindings, so add to `~/.claude/keybindings.json`:
-
-```json
-{
-  "$schema": "https://www.schemastore.org/claude-code-keybindings.json",
-  "bindings": [
-    {
-      "context": "Global",
-      "bindings": {
-        "alt+up": "strip:jump6",
-        "alt+down": "strip:jump7",
-        "alt+left": "strip:jump8",
-        "alt+right": "strip:jump9",
-        "alt+.": "strip:jump5"
-      }
-    }
-  ]
-}
-```
-
-Merge with your existing `bindings` if you have some. These keys replace Claude Code's defaults for `alt+↑/↓` (diff file list) and `alt+←/→` (word jumps).
-
-**4. Make your terminal send Alt.** On macOS, Option usually types a symbol instead. Enable "Option as Alt" in your terminal (iTerm2: Profiles → Keys; Terminal.app: Use Option as Meta key). In kitty, `macos_option_as_alt yes`, or to change only `alt+.`:
-
-```
-map opt+period send_text all \x1b.
-```
-
-Restart Claude Code. The meter appears at the right of the footer.
-
-## Customize
-
-- **Different keys:** change them in `keybindings.json` (keep the `strip:jump5-9` actions). Update `KEYS`/`KEY_TABLE` in `hooks/register.tsx` so `/model-effort` stays accurate.
 - **Model list:** edit `MODELS` at the top of `hooks/register.tsx` (`fable, opus, sonnet, haiku`).
-
-## Develop
-
-```sh
-claude plugin validate .
-claude plugin test .
-```
+- **Different keys:** change them in `keybindings.json` (keep the `strip:jump5-9` actions), and update `BINDINGS`, `KEYS` and `KEY_TABLE` in `hooks/register.tsx`.
+- **Check your change:** `claude plugin validate .` and `claude plugin test .`
 
 ## How it works
 
-Mods can't read keys directly. Instead the mod draws four hidden buttons above the prompt, each tied to a built-in `strip:jump` action, and your keybindings fire those actions. Effort is applied by rewriting the effort on each main-thread request (subagents keep theirs), so no `/effort` rows clutter the transcript.
+Mods can't read keys directly. Instead the mod draws five hidden buttons above the prompt, each tied to a built-in `strip:jump` action, and your keybindings fire those actions. Effort is applied by rewriting the effort on each main-thread request (subagents keep theirs), so no `/effort` rows clutter the transcript.
 
 ## Limits
 

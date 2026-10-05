@@ -88,3 +88,39 @@ test('/model-effort lists the keys', async ($, on) => {
   expect(text).toContain('alt+.')
   expect(text).toContain('alt+← / alt+→')
 })
+
+test('/model-effort setup merges the keys into keybindings.json and keeps what is there', async ($, on) => {
+  let file: string | undefined = JSON.stringify({
+    bindings: [
+      { context: 'Chat', bindings: { 'ctrl+e': 'chat:externalEditor' } },
+      { context: 'Global', bindings: { 'alt+up': 'app:toggleTodos' } },
+    ],
+  })
+  const written: string[] = []
+  on('env.get', () => ({ value: '/home/me' }))
+  on('fs.exists', () => ({ value: file !== undefined }))
+  on('fs.read', () => ({ value: file! }))
+  on('fs.write', (_$, e) => {
+    file = e.text
+    written.push(e.path)
+    return { value: undefined }
+  })
+  const typed = { origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 120 } } as const
+  const setup = () => $.command.run({ ...typed, command: 'model-effort', args: 'setup' })
+
+  const first = await setup()
+  const bindings = JSON.parse(file!).bindings
+  expect(written).toEqual(['/home/me/.claude/keybindings.json'])
+  expect(bindings[0].bindings['ctrl+e']).toBe('chat:externalEditor')
+  expect(bindings[1].bindings).toMatchObject({ 'alt+up': 'app:toggleTodos', 'alt+down': 'strip:jump7', 'alt+.': 'strip:jump5' })
+  expect(first.text).toContain('Left alone: alt+up')
+
+  // A second run changes nothing.
+  expect((await setup()).text).toContain('Left alone: alt+up')
+  expect(written).toHaveLength(1)
+
+  // No file yet: it is created with every key.
+  file = undefined
+  await setup()
+  expect(Object.keys(JSON.parse(file!).bindings[0].bindings)).toHaveLength(5)
+})

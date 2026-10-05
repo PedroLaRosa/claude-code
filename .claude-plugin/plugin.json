@@ -2,5 +2,17 @@
   "name": "model-effort",
   "version": "0.1.0",
   "description": "Shows the model and effort under the prompt, cycled with alt+up/down (model), alt+left/right (effort) and alt+. (ultracode)",
+  "author": {
+    "name": "Pedro La Rosa"
+  },
+  "homepage": "https://github.com/PedroLaRosa/claude-code-model-effort",
+  "repository": "https://github.com/PedroLaRosa/claude-code-model-effort",
+  "keywords": [
+    "model",
+    "effort",
+    "ultracode",
+    "keybindings",
+    "mod"
+  ],
   "types": "./types/index.d.ts"
 }

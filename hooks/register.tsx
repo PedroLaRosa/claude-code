@@ -82,14 +82,62 @@ const KEY_TABLE = [
   '  alt+.           ultracode on / off (/effort ultracode)',
 ].join('\n')
 
+const BINDINGS: Record<string, string> = {
+  'alt+up': 'strip:jump6',
+  'alt+down': 'strip:jump7',
+  'alt+left': 'strip:jump8',
+  'alt+right': 'strip:jump9',
+  'alt+.': 'strip:jump5',
+}
+
+type KeybindingsFile = { bindings?: { context: string; bindings: Record<string, string | null> }[] }
+
+// `/model-effort setup`: merges BINDINGS into ~/.claude/keybindings.json, leaving
+// any key the person already bound to something else alone.
+async function setupKeys($: EngineInterface): Promise<string> {
+  const path = `${await $.env.get('HOME')}/.claude/keybindings.json`
+  let file: KeybindingsFile = {}
+  if (await $.fs.exists(path)) {
+    try {
+      file = JSON.parse(await $.fs.read(path))
+    } catch {
+      return `${path} is not valid JSON, so nothing was changed. Fix it and run /model-effort setup again.`
+    }
+  }
+  const all = (file.bindings ??= [])
+  let global = all.find(b => b.context === 'Global')
+  if (!global) all.push((global = { context: 'Global', bindings: {} }))
+  const added: string[] = []
+  const kept: string[] = []
+  for (const [key, action] of Object.entries(BINDINGS)) {
+    const now = global.bindings[key]
+    if (now === undefined) {
+      global.bindings[key] = action
+      added.push(key)
+    } else if (now !== action) kept.push(`${key} (already ${now ?? 'unbound'})`)
+  }
+  if (added.length > 0) {
+    const out = { $schema: 'https://www.schemastore.org/claude-code-keybindings.json', ...file }
+    await $.fs.write(path, `${JSON.stringify(out, null, 2)}\n`)
+  }
+
+  return [
+    added.length > 0 ? `Bound ${added.join(', ')} in ~/.claude/keybindings.json.` : 'The keys are already bound.',
+    kept.length > 0 ? `Left alone: ${kept.join(', ')}. Unbind those, then run setup again.` : '',
+    'Last step: make your terminal send Alt for Option (see the README).',
+  ].filter(Boolean).join('\n')
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'model-effort', description: `Keys: ${KEYS}` })
+    await $.command.register({ name: 'model-effort', description: `Keys: ${KEYS} · "setup" binds them`, argumentHint: '[setup]' })
 
     return next(e)
   })
 
-  on('command.run', { command: 'model-effort' }, () => ({ text: KEY_TABLE }))
+  on('command.run', { command: 'model-effort' }, async ($, e) => ({
+    text: e.args.trim() === 'setup' ? await setupKeys($) : KEY_TABLE,
+  }))
 
   on('turn.step', async function* ($, e, next) {
     const level = e.effort
