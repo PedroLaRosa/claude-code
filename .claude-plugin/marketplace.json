@@ -1,0 +1,45 @@
+{
+  "name": "pedro-la-rosa-mods",
+  "owner": {
+    "name": "Pedro La Rosa",
+    "url": "https://github.com/PedroLaRosa"
+  },
+  "description": "Pedro La Rosa's Claude Code mods.",
+  "plugins": [
+    {
+      "name": "dep-bouncer",
+      "source": "./plugins/dep-bouncer",
+      "description": "Blocks agent package installs that are too fresh, too obscure, typosquats, or add install scripts.",
+      "category": "security",
+      "keywords": ["security", "supply-chain", "npm", "typosquat", "mod"]
+    },
+    {
+      "name": "lazygit-popup",
+      "source": "./plugins/lazygit-popup",
+      "description": "alt+g opens lazygit in a popup over Claude Code; ESC closes it.",
+      "category": "productivity",
+      "keywords": ["lazygit", "git", "tmux", "popup", "mod"]
+    },
+    {
+      "name": "lens",
+      "source": "./plugins/lens",
+      "description": "Runs tsc (warm --watch), the project's linters and a secret scan on every edit and hands the result to Claude in the same turn.",
+      "category": "development",
+      "keywords": ["lint", "typescript", "tsc", "eslint", "diagnostics", "lsp", "mod"]
+    },
+    {
+      "name": "model-cycle",
+      "source": "./plugins/model-cycle",
+      "description": "Switch model, effort and ultracode with one keystroke; shows the model and effort in the footer.",
+      "category": "productivity",
+      "keywords": ["model", "effort", "ultracode", "keybindings", "mod"]
+    },
+    {
+      "name": "token-weather-usage",
+      "source": "./plugins/token-weather-usage",
+      "description": "Colored pills above the prompt: context tokens, 5h/7d limits against time elapsed, prompt cache time left, session cost and running subagents.",
+      "category": "productivity",
+      "keywords": ["usage", "tokens", "context", "cost", "cache", "mod"]
+    }
+  ]
+}

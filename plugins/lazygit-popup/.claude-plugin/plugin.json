@@ -5,7 +5,7 @@
   "author": {
     "name": "Pedro La Rosa"
   },
-  "homepage": "https://github.com/PedroLaRosa/claude-code-lazygit-popup",
-  "repository": "https://github.com/PedroLaRosa/claude-code-lazygit-popup",
+  "homepage": "https://github.com/PedroLaRosa/claude-code-plugins/tree/main/plugins/lazygit-popup",
+  "repository": "https://github.com/PedroLaRosa/claude-code-plugins",
   "keywords": ["lazygit", "git", "tmux", "popup", "keybindings", "mod"]
 }

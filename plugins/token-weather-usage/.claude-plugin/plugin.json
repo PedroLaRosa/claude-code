@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "description": "A row of colored pills above the prompt: context tokens with weather, 5h/7d limits vs time elapsed, prompt cache time left, session cost, running subagents. No network, no files, no process access.",
   "author": {
-    "name": "PedroLaRosa"
+    "name": "Pedro La Rosa"
   },
-  "repository": "https://github.com/PedroLaRosa/token-weather-usage",
+  "homepage": "https://github.com/PedroLaRosa/claude-code-plugins/tree/main/plugins/token-weather-usage",
+  "repository": "https://github.com/PedroLaRosa/claude-code-plugins",
   "license": "MIT",
   "types": "./types/index.d.ts"
 }

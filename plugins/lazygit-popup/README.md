@@ -21,8 +21,8 @@ Install the tools with `brew install tmux lazygit` on macOS, or your package man
 ## Install
 
 ```bash
-claude plugin marketplace add PedroLaRosa/claude-code-lazygit-popup
-claude plugin install lazygit-popup@lazygit-popup
+claude plugin marketplace add PedroLaRosa/claude-code-plugins
+claude plugin install lazygit-popup@pedro-la-rosa-mods
 ```
 
 A mod can't ship keybindings, so bind the key yourself. Add this to the `"Global"` bindings in `~/.claude/keybindings.json`:
@@ -44,8 +44,8 @@ On macOS, make your terminal send Option as Alt (iTerm2: Profiles → Keys; Term
 ## Hack on it
 
 ```bash
-git clone https://github.com/PedroLaRosa/claude-code-lazygit-popup ~/.claude/mods/lazygit-popup
-claude --plugin-dir ~/.claude/mods/lazygit-popup
+git clone https://github.com/PedroLaRosa/claude-code-plugins ~/claude-code-plugins
+claude --plugin-dir ~/claude-code-plugins/plugins/lazygit-popup
 ```
 
 To load it in every session, add the folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`. Popup size is the `-w` / `-h` pair in `hooks/register.tsx`. Check changes with `claude plugin validate .` and `claude plugin test .`

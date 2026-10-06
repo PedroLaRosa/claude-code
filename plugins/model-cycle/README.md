@@ -20,8 +20,8 @@ Needs a Claude Code version with mods (built on 2.1.289). **Pick one:**
 Paste this into a Claude Code session and it does the rest:
 
 ```text
-Install the Claude Code mod from github.com/PedroLaRosa/claude-code-model-cycle:
-1. Run `claude plugin marketplace add PedroLaRosa/claude-code-model-cycle`, then
+Install the Claude Code mod from github.com/PedroLaRosa/claude-code-plugins:
+1. Run `claude plugin marketplace add PedroLaRosa/claude-code-plugins`, then
    `claude plugin install model-cycle@pedro-la-rosa-mods`.
 2. Merge these into the "Global" bindings of ~/.claude/keybindings.json (create the
    file if missing, keep every existing binding, don't overwrite a key that is already
@@ -37,14 +37,14 @@ Install the Claude Code mod from github.com/PedroLaRosa/claude-code-model-cycle:
 <summary><strong>Run commands</strong></summary>
 
 ```bash
-claude plugin marketplace add PedroLaRosa/claude-code-model-cycle
+claude plugin marketplace add PedroLaRosa/claude-code-plugins
 claude plugin install model-cycle@pedro-la-rosa-mods
 ```
 
 Or from inside a session:
 
 ```
-/plugin marketplace add PedroLaRosa/claude-code-model-cycle
+/plugin marketplace add PedroLaRosa/claude-code-plugins
 /plugin install model-cycle@pedro-la-rosa-mods
 /reload-plugins
 ```
@@ -83,11 +83,11 @@ Update with `claude plugin update model-cycle@pedro-la-rosa-mods`. Remove with `
 Clone it and load the folder directly instead of installing:
 
 ```bash
-git clone https://github.com/PedroLaRosa/claude-code-model-cycle ~/.claude/mods/model-cycle
-claude --plugin-dir ~/.claude/mods/model-cycle
+git clone https://github.com/PedroLaRosa/claude-code-plugins ~/claude-code-plugins
+claude --plugin-dir ~/claude-code-plugins/plugins/model-cycle
 ```
 
-To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/model-cycle" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
+To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-code-plugins/plugins/model-cycle" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
 
 - **Meter glyphs:** edit `ϟ` (filled) and `·` (empty) in the `SessionMode` render hook of `hooks/register.tsx`. If `ϟ` renders as a letter in your font, swap it for `↯`.
 - **Model list:** edit `MODELS` at the top of `hooks/register.tsx` (`fable, opus, sonnet, haiku`).
