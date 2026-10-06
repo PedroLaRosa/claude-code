@@ -98,7 +98,10 @@ To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-
 
 Mods can't read keys directly. Instead the mod draws five hidden buttons above the prompt, each tied to a built-in `strip:jump` action, and your keybindings fire those actions. Effort is applied by rewriting the effort on each main-thread request (subagents keep theirs), so no `/effort` rows clutter the transcript.
 
+Claude Code gives mods no way to read its effort, so the footer follows the line `/effort` and the model picker print (`Set effort level to max (this session only)`, `… with high effort`). Typing a level, the slider, its `s` for this session only, and Esc all show up straight away. Picking a level there replaces a key's pick.
+
 ## Limits
 
 - Plain `shift+arrow` can't be used: Claude Code doesn't deliver shift-only keys to mod buttons.
-- The ultracode toggle remembers what it last asked for. If you flip ultracode from the `/effort` slider, one press may look like a no-op while it catches up. Claude Code's own `· ultracode` indicator above the prompt is always accurate.
+- An `alt+←/→` pick is sent with each request and never saved, so Claude Code's own effort displays (where the `/effort` slider opens, the `● high · /effort` note) keep showing its level. The footer shows what is actually sent.
+- If Claude Code refuses an `alt+.` (ultracode not available), the next press may look like a no-op while it catches up. Claude Code's own `· ultracode` indicator above the prompt is always accurate.

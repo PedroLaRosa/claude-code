@@ -3,6 +3,6 @@ export type Level = { model: string; level: string }
 
 declare module 'claude-code' {
   interface PluginState {
-    'model-cycle': { pick: Level | null; base: Level | null; ultra: boolean }
+    'model-cycle': { pick: Level | null; base: Level | null; printed: string | null; ultra: boolean }
   }
 }

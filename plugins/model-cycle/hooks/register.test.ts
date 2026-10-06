@@ -1,4 +1,4 @@
-import type { RenderElement, RenderPropsOf } from 'claude-code'
+import type { EventOf, RenderElement, RenderPropsOf } from 'claude-code'
 import { expect, test } from 'claude-code/testing'
 
 const BAND: RenderPropsOf['AbovePrompt'] = {
@@ -64,12 +64,26 @@ test('the band keys cycle effort (wrapping) and model; the footer shows both', a
   expect(ran.at(-1)).toBe('model fable')
 })
 
-test('alt+. toggles ultracode through /effort, following a typed /effort ultracode', async ($, on) => {
+// A row as /effort or the model picker prints it, or as the model writes it.
+const row = (text: string, door: 'command' | 'response' = 'command'): EventOf['session.append'] => {
+  const role = door === 'command' ? 'user' : 'assistant'
+  return {
+    message: { type: role, role, content: [{ type: 'text', text }] },
+    door,
+    origin: door === 'command' ? { kind: 'composer' } : { kind: 'model', model: 'claude-opus-5-5' },
+    uuid: text,
+  }
+}
+const stdout = (text: string) => row(`<local-command-stdout>${text}</local-command-stdout>`)
+
+test('alt+. toggles ultracode through /effort, following one turned on elsewhere', async ($, on) => {
   const ran: string[] = []
   on('session.model', () => ({ value: 'claude-opus-5-5' }))
   on('settings.read', () => ({ value: {} }))
   on('clock.now', () => ({ value: 0 }))
   on('ui.render', { component: 'AbovePrompt' }, (): RenderElement => ({ type: 'Box', children: [] }))
+  // Nothing in a test stores a row (the bottom throws), so an append rejects once the mod has read it.
+  const append = (r: EventOf['session.append']) => $.session.append(r).catch(() => undefined)
   on('command.run', ($, e) => {
     ran.push(`${e.command} ${e.args}`)
     return {}
@@ -84,13 +98,45 @@ test('alt+. toggles ultracode through /effort, following a typed /effort ultraco
   await band.press({ key: 'ultracode' })
   expect(ran.at(-1)).toBe('effort ultracode off')
 
-  // Typed by hand: the next press turns it off, and the effort pick stays.
+  // Turned on by hand (typed, or tab in the slider): the next press turns it off, and the effort pick stays.
   await band.press({ key: 'effort-up' })
-  const typed = { command: 'effort', origin: { kind: 'composer' }, presentation: { isFullscreen: true, columns: 120 } } as const
-  await $.command.run({ ...typed, args: 'ultracode' })
+  await append(stdout('Ultracode on (this session only): dynamic workflows on every task. Effort stays high.'))
   await band.press({ key: 'ultracode' })
   expect(ran.at(-1)).toBe('effort ultracode off')
   expect(await shown()).toContain('ϟϟϟϟ· xhigh')
+})
+
+test('the footer follows every level /effort or the model picker prints, saved or not', async ($, on) => {
+  let model = 'claude-opus-5-5'
+  on('session.model', () => ({ value: model }))
+  on('settings.read', () => ({ value: { effortLevel: 'medium' } }))
+  on('clock.now', () => ({ value: 0 }))
+  on('ui.render', { component: 'AbovePrompt' }, (): RenderElement => ({ type: 'Box', children: [] }))
+  // Nothing in a test stores a row (the bottom throws), so an append rejects once the mod has read it.
+  const append = (r: EventOf['session.append']) => $.session.append(r).catch(() => undefined)
+
+  const band = await $.ui.mount({ plugin: 'model-cycle', surface: 'terminal', component: 'AbovePrompt', props: BAND })
+  const footer = await $.ui.mount({ plugin: 'model-cycle', surface: 'terminal', component: 'SessionMode', props: { modes: [] } })
+  const shown = async () => (await footer.findAll({ type: 'Text' })).map(t => t.text).join('')
+
+  expect(await shown()).toContain('ϟϟ··· medium')
+  // The slider's `s`: this session only, so the saved medium no longer applies.
+  await append(stdout('Set effort level to max (this session only): Maximum capability with deepest reasoning.'))
+  expect(await shown()).toContain('ϟϟϟϟϟ max')
+  // Esc in the slider changes nothing, a key's pick included.
+  await band.press({ key: 'effort-down' })
+  await append(stdout('Cancelled'))
+  expect(await shown()).toContain('ϟϟϟϟ· xhigh')
+  // The model picker's level replaces the pick, and holds on the next model too.
+  model = 'claude-sonnet-5-5'
+  await append(stdout('Set model to Sonnet 5.5 for this session only with low effort'))
+  expect(await shown()).toContain('Sonnet 5.5 ϟ···· low')
+  // The model saying it is no row the engine printed.
+  await append(row('Set effort level to max', 'response'))
+  expect(await shown()).toContain('ϟ···· low')
+  // auto: back to the saved default.
+  await append(stdout('Effort level set to auto (this session only)'))
+  expect(await shown()).toContain('ϟϟ··· medium')
 })
 
 test('/model-cycle lists the keys', async ($, on) => {

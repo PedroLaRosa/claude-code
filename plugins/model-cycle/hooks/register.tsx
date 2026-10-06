@@ -24,11 +24,18 @@ const STEP_MS = 110
 const pick = atom({ plugin: 'model-cycle', key: 'pick' } as const, null)
 // The level the engine itself last sent on the main thread.
 const base = atom({ plugin: 'model-cycle', key: 'base' } as const, null)
-// Whether ultracode was last asked on. The engine's flag has no reader and /effort
-// answers a mod with no text, so this is the ask, not the truth; the engine draws the
-// truth itself (`· ultracode` above the prompt).
-// ponytail: a refused `on` or the /effort slider's tab toggle costs one press to resync
+// The level /effort or the model picker last printed. The engine keeps one for every
+// model; null after `auto`, so the saved default applies.
+const printed = atom({ plugin: 'model-cycle', key: 'printed' } as const, null)
+// Whether ultracode is on, as /effort last printed it or the key last asked.
+// ponytail: a refused `on` from the key costs one press to resync; the engine draws the
+// truth itself (`· ultracode` above the prompt)
 const ultra = atom({ plugin: 'model-cycle', key: 'ultra' } as const, false)
+
+// What /effort and the model picker print as they set a level: `Set effort level to max
+// (this session only): …`, `Effort level set to auto`, `…; set to 'xhigh' instead`,
+// `Set model to Opus 5.5 … with high effort`.
+const SET_LEVEL = /effort level (?:set )?to (\w+)|set to '(\w+)' instead|with (\w+) effort/i
 
 // The model the footer last drew, so the band can tell when alt+p changed it.
 let drawnModel = ''
@@ -37,10 +44,13 @@ let animated = false
 
 const wrap = (list: string[], at: number, dir: number) => list[(at + dir + list.length) % list.length]!
 
-// The engine's level for `model`: its last request's, else the saved default.
+// The engine's level for `model`: its last request's, else what /effort last printed,
+// else the saved default.
 async function engineLevel($: EngineInterface, model: string): Promise<string> {
   const seen = await read($, base)
   if (seen?.model === model) return seen.level
+  const said = await read($, printed)
+  if (said !== null) return said
   const s = await $.settings.read()
   const perModel = s.modelSettings as Record<string, { effortLevel?: unknown } | undefined> | undefined
   const saved = perModel?.[model.replace('[1m]', '')]?.effortLevel ?? s.effortLevel
@@ -56,7 +66,7 @@ async function stepEffort($: EngineInterface, dir: number) {
   }))
 }
 
-// The mod's own run skips its command.run hook, so it notes the ask itself.
+// The press notes its ask itself; the row /effort prints, if it reaches the hook, agrees.
 async function toggleUltra($: EngineInterface) {
   const on = !(await read($, ultra))
   await update($, ultra, () => on)
@@ -156,7 +166,7 @@ export const register: Register = on => {
     if (e.agentId !== undefined || typeof level !== 'string') return yield* next(e)
     const seen = await read($, base)
     if (seen?.model !== e.model || seen.level !== level) {
-      // The engine's level changed on this model (/effort, alt+p): follow it.
+      // The engine's level changed on this model without printing it: follow it.
       if (seen?.model === e.model) await update($, pick, () => null)
       await update($, base, () => ({ model: e.model, level }))
     }
@@ -165,24 +175,24 @@ export const register: Register = on => {
     return yield* next(chosen?.model === e.model ? { ...e, effort: chosen.level as typeof e.effort } : e)
   })
 
-  on('command.run', { command: 'effort' }, async ($, e, next) => {
-    const ran = await next(e)
-    const [word, arg] = e.args.trim().toLowerCase().split(/\s+/)
-    if (word === 'ultracode') {
-      // As /effort reads it: bare or `on` is on, `off` is off.
-      if (arg === undefined || arg === 'on' || arg === 'off') await update($, ultra, () => arg !== 'off')
-
-      return ran
+  // The row /effort or the model picker prints is the only place the engine tells a mod
+  // its level: typed or slid, saved or this session only. A row that sets none (Esc's
+  // `Cancelled`, an error) leaves the pick alone.
+  on('session.append', async ($, e, next) => {
+    const text = e.message.content.map(b => (b.type === 'text' ? b.text : '')).join('')
+    if (e.agentId !== undefined || !text.startsWith('<local-command-stdout>')) return next(e)
+    const set = text.match(SET_LEVEL)
+    const level = (set?.[1] ?? set?.[2] ?? set?.[3])?.toLowerCase()
+    if (level !== undefined && (level === 'auto' || LEVELS.includes(level))) {
+      await update($, pick, () => null)
+      await update($, base, () => null)
+      await update($, printed, () => (level === 'auto' ? null : level))
     }
-    await update($, pick, () => null)
-    const level = e.args.trim()
-    if (LEVELS.includes(level)) {
-      const model = await $.session.model()
-      await update($, base, () => ({ model, level }))
-    }
+    const ultracode = text.match(/\bUltracode (on|off)\b/)
+    if (ultracode) await update($, ultra, () => ultracode[1] === 'on')
 
-    return ran
-  })
+    return next(e)
+  }).catch(($, e, next) => next(e))
 
   on('command.run', { command: 'model' }, async ($, e, next) => {
     const ran = await next(e)
