@@ -1,0 +1,31 @@
+{
+  "name": "claude-code-lens",
+  "version": "0.1.0",
+  "description": "Puts tsc, linter and secret-scan diagnostics in the result of every Edit and Write, so Claude fixes what it broke in the same turn",
+  "author": {
+    "name": "Pedro La Rosa"
+  },
+  "homepage": "https://github.com/PedroLaRosa/claude-code-lens",
+  "repository": "https://github.com/PedroLaRosa/claude-code-lens",
+  "keywords": ["lint", "typescript", "tsc", "eslint", "diagnostics", "lsp", "mod"],
+  "userConfig": {
+    "stopGuard": {
+      "type": "boolean",
+      "title": "Stop guard",
+      "description": "When a turn ends with errors it introduced, send Claude back once to fix them",
+      "default": true
+    },
+    "tidy": {
+      "type": "boolean",
+      "title": "Tidy at turn end",
+      "description": "Run the project's configured fixers and formatters (eslint --fix, biome, prettier, ruff, gofmt, rustfmt) on the files a turn edited",
+      "default": true
+    },
+    "gitGuard": {
+      "type": "boolean",
+      "title": "Git guard",
+      "description": "Deny git commit and git push while files this session edited still have errors",
+      "default": false
+    }
+  }
+}
