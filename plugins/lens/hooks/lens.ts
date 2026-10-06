@@ -1,4 +1,4 @@
-// The pure half of claude-code-lens: which tools run on which files, how their output parses,
+// The pure half of lens: which tools run on which files, how their output parses,
 // the secret patterns, and how a diagnostic is named. No `$` here, so the tests call it directly.
 
 export type Severity = 'error' | 'warning' | 'info'
@@ -42,7 +42,7 @@ const RUFF = ['ruff.toml', '.ruff.toml', 'pyproject.toml#[tool.ruff']
 const BIOME = ['biome.json', 'biome.jsonc']
 
 // tsc is not in the table: it runs as one warm `tsc --watch` per tsconfig (register.ts).
-// ponytail: ~15 common tools; anything else goes in .claude-code-lens.json `runners`.
+// ponytail: ~15 common tools; anything else goes in .lens.json `runners`.
 export const TOOLS: readonly Tool[] = [
   { id: 'eslint', match: JS, bin: 'eslint', local: true, gate: ESLINT, cwd: 'gate', format: 'eslint', argv: f => ['--format', 'json', ...f] },
   { id: 'biome', match: BIOME_EXT, bin: 'biome', local: true, format: 'github', argv: f => ['lint', '--reporter=github', ...f] },
@@ -70,7 +70,7 @@ export const TOOLS: readonly Tool[] = [
   { id: 'rustfmt', match: /\.rs$/, bin: 'rustfmt', gate: ['Cargo.toml'], cwd: 'gate', argv: f => ['--edition', '2021', ...f] },
 ]
 
-/** A runner from `.claude-code-lens.json`; throws, naming what is wrong, on a malformed one. */
+/** A runner from `.lens.json`; throws, naming what is wrong, on a malformed one. */
 export function customTool(raw: unknown): Tool {
   const { id, match, argv, format = 'gcc', cwd } = (raw ?? {}) as Record<string, unknown>
   const isArgv = Array.isArray(argv) && argv.length > 0 && argv.every(a => typeof a === 'string')

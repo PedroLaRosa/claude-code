@@ -127,7 +127,7 @@ function world(on: On) {
       await new Promise<void>(resolve => (pull = resolve))
     }
   })
-  on('tool.register', (_$, e) => ({ value: { tool: `mcp__claude-code-lens__${e.name}` } }))
+  on('tool.register', (_$, e) => ({ value: { tool: `mcp__lens__${e.name}` } }))
   on('command.register', (_$, e) => ({ value: { command: e.name } }))
   on('ui.status', () => ({ value: undefined }))
   on('ui.log', () => ({ value: undefined }))
@@ -183,7 +183,7 @@ test('a clean edit says so, and multi-line tsc messages stay whole', async ($, o
   world(on)
   await start($)
   const ok = await edit($, 'var greet', 'const greet')
-  expect(ok.context).toEqual(['[claude-code-lens] src/a.ts: no new issues (eslint, tsc).'])
+  expect(ok.context).toEqual(['[lens] src/a.ts: no new issues (eslint, tsc).'])
   const bad = await edit($, '=> name\n', '=> name\nconst n = 1 as string\n')
   expect(bad.context?.join('\n')).toMatch(/may be a mistake\. Type 'number' is not comparable to type 'string'\. \[tsc TS2352\]/)
 })
@@ -200,7 +200,7 @@ test('a turn that leaves new errors sends Claude back once, and a mark releases 
 
   // The follow-up turn keeps the original "before"; marking the error lets it end, once, and tidy runs then.
   await $.turn.start({ text: sent[0]!, turnId: 't2' })
-  const marked = await $.tool.call({ tool: 'mcp__claude-code-lens__lens_diagnostic_mark', id, disposition: 'defer', reason: 'next PR' })
+  const marked = await $.tool.call({ tool: 'mcp__lens__lens_diagnostic_mark', id, disposition: 'defer', reason: 'next PR' })
   expect(String(marked.result)).toMatch(/deferred for this session/)
   expect(ran.some(argv => argv.includes('--write'))).toBe(false)
   await complete()

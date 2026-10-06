@@ -1,12 +1,12 @@
 {
-  "name": "claude-code-lens",
+  "name": "lens",
   "version": "0.1.0",
   "description": "Puts tsc, linter and secret-scan diagnostics in the result of every Edit and Write, so Claude fixes what it broke in the same turn",
   "author": {
     "name": "Pedro La Rosa"
   },
-  "homepage": "https://github.com/PedroLaRosa/claude-code-lens",
-  "repository": "https://github.com/PedroLaRosa/claude-code-lens",
+  "homepage": "https://github.com/PedroLaRosa/claude-code-plugins/tree/main/plugins/lens",
+  "repository": "https://github.com/PedroLaRosa/claude-code-plugins",
   "keywords": ["lint", "typescript", "tsc", "eslint", "diagnostics", "lsp", "mod"],
   "userConfig": {
     "stopGuard": {

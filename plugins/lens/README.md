@@ -1,4 +1,4 @@
-# claude-code-lens
+# lens
 
 A [Claude Code mod](https://code.claude.com/docs) that checks every file Claude edits. After each Edit or Write, it runs tsc and the linters your project uses, then puts what the edit broke into that same tool result. Claude sees a type error in the turn it caused it, not three tool calls later when a test fails.
 
@@ -9,14 +9,14 @@ It is the Claude Code version of [pi-lens](https://pi.dev/packages/pi-lens).
 After an edit that changes a function signature:
 
 ```
-[claude-code-lens] src/a.ts: nothing new introduced in this file (biome, oxlint, tsc).
+[lens] src/a.ts: nothing new introduced in this file (biome, oxlint, tsc).
   (1 pre-existing in this file, not shown)
 Errors this turn introduced in other files:
   error src/b.ts:2:25 Argument of type 'string' is not assignable to parameter of type 'number'. [tsc TS2345] #4429ff
 Fix what this edit introduced before moving on. If a finding is wrong, call lens_diagnostic_mark with its #id.
 ```
 
-After a clean edit: `[claude-code-lens] src/b.ts: no new issues (biome, oxlint, tsc).`
+After a clean edit: `[lens] src/b.ts: no new issues (biome, oxlint, tsc).`
 
 Reports list only what the current turn introduced. Every tool runs once before Claude's first edit of a file in a turn, so the report can compare. Problems that were already there are counted, not listed.
 
@@ -37,7 +37,7 @@ Reports list only what the current turn introduced. Every tool runs once before 
   | YAML / GitHub workflows | yamllint (with a config), actionlint |
   | Dockerfile | hadolint |
 
-  You can add any other tool to `.claude-code-lens.json` (see Config below).
+  You can add any other tool to `.lens.json` (see Config below).
 - **Secret scan.** Every edited file is scanned for AWS, GitHub, Slack, Stripe, Google, Anthropic, OpenAI and npm tokens, and for private keys. A hit is an error, and its message shows only the first four characters. `.env` files are skipped.
 - **Turn-end guard.** If a turn ends with errors it introduced, the mod sends Claude one follow-up prompt that lists them. It never sends a second one. The follow-up measures fixes against the code as it was before the turn started.
 - **Tidy at turn end.** After a turn, the files it edited go through the project's fixers and formatters, in this order: `eslint --fix`, `biome check --write`, prettier, `ruff check --fix`, `ruff format`, gofmt, rustfmt. Each one runs only if the project configures it. This runs once at the end, never between edits, because a formatter running mid-change fights the edits still being made.
@@ -65,7 +65,7 @@ Three switches appear in `/config` under the plugin's options:
 | `tidy` | on | Run the configured fixers and formatters at turn end |
 | `gitGuard` | off | Deny `git commit` and `git push` while edited files have errors |
 
-Per project, add `.claude-code-lens.json` at the root:
+Per project, add `.lens.json` at the root:
 
 ```json
 {
@@ -83,7 +83,7 @@ Per project, add `.claude-code-lens.json` at the root:
   - `eslint`: ESLint's JSON output
 - A runner's `cwd` is `"dir"` to run in the file's folder. Otherwise it runs in the project root.
 
-A runner runs the command you give it, just as a hook in `.claude/settings.json` does. So only trust a `.claude-code-lens.json` you would also trust as settings.
+A runner runs the command you give it, just as a hook in `.claude/settings.json` does. So only trust a `.lens.json` you would also trust as settings.
 
 ## Compared with pi-lens
 
@@ -105,17 +105,22 @@ A runner runs the command you give it, just as a hook in `.claude/settings.json`
 
 ## Install
 
-The plugin name starts with `claude-`, which Claude Code reserves for Anthropic. Because of that, `claude plugin validate` fails and the plugin can't be published to a marketplace. Load it from its folder instead:
-
-```bash
-claude --plugin-dir ~/.claude/mods/claude-code-lens
+```
+/plugin install lens --marketplace PedroLaRosa/claude-code-plugins
 ```
 
-To load it in every session, add the folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`.
+Answer `y` to add the marketplace, then pick the user scope so it loads in every session.
 
 Requirements: Claude Code with mods (built on 2.1.291), plus whichever of the tools above your projects use.
 
 ## Hack on it
+
+```bash
+git clone https://github.com/PedroLaRosa/claude-code-plugins ~/claude-code-plugins
+claude --plugin-dir ~/claude-code-plugins/plugins/lens
+```
+
+To load it in every session, add the folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`.
 
 The tool table, output parsers and secret patterns live in `hooks/lens.ts`. The hooks, tsc watchers and turn state live in `hooks/register.ts`. Run the tests with `claude plugin test .`.
 

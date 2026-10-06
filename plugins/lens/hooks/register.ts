@@ -19,7 +19,7 @@ type Watch = {
   stop: () => void
 }
 
-const NAME = 'claude-code-lens'
+const NAME = 'lens'
 const IDLE_MS = 10 * 60_000 // a tsc watcher with no TypeScript edit for this long is stopped
 const NOTICE_MS = 1_500 // how long tsc gets to notice an edit (its file watcher debounces ~250 ms)
 const RESERVE_MS = 1_500 // kept back from the hook's 10 s budget
@@ -100,9 +100,9 @@ function resolveBin($: $, bin: string, dir: string, local?: true): Promise<strin
   })
 }
 
-/** `.claude-code-lens.json` at the project root: runners to `disable`, and `runners` of the project's own. */
+/** `.lens.json` at the project root: runners to `disable`, and `runners` of the project's own. */
 async function config($: $): Promise<Config> {
-  const text = await $.fs.read(join(root, '.claude-code-lens.json')).catch(() => undefined)
+  const text = await $.fs.read(join(root, '.lens.json')).catch(() => undefined)
   if (text === undefined) return { disable: [], runners: [] }
   try {
     const raw = JSON.parse(text) as { disable?: unknown; runners?: unknown }
@@ -111,7 +111,7 @@ async function config($: $): Promise<Config> {
       runners: Array.isArray(raw.runners) ? raw.runners.map(customTool) : [],
     }
   } catch (err) {
-    note($, `.claude-code-lens.json ignored: ${(err as Error).message}`)
+    note($, `.lens.json ignored: ${(err as Error).message}`)
     return { disable: [], runners: [] }
   }
 }
@@ -482,12 +482,12 @@ export const register: Register = (on, options) => {
     return withNotes(result, report(file, names, scopes, false, !!w && !isFresh))
   }).catch(($, e, next) => next(e))
 
-  on('tool.call', { tool: 'mcp__claude-code-lens__lens_diagnostics' }, async ($, e, next) => {
+  on('tool.call', { tool: 'mcp__lens__lens_diagnostics' }, async ($, e, next) => {
     const path = typeof e.path === 'string' && e.path ? resolvePath(root, e.path) : undefined
     return { result: path ? await checkNow($, path, Math.min(next.budget.remainingMs, 60_000) - RESERVE_MS) : summary() }
   })
 
-  on('tool.call', { tool: 'mcp__claude-code-lens__lens_diagnostic_mark' }, async ($, e) => {
+  on('tool.call', { tool: 'mcp__lens__lens_diagnostic_mark' }, async ($, e) => {
     const id = String(e.id ?? '').replace(/^#/, '')
     const hit = [...live()].find(x => idOf(x.d) === id)?.d
     if (!hit) return { result: `No current finding has id #${id}; lens_diagnostics lists the live ones.` }
@@ -522,7 +522,7 @@ export const register: Register = (on, options) => {
       $.tool.register({
         name: 'lens_diagnostics',
         description:
-          'Diagnostics from claude-code-lens: tsc and the linters the project uses (eslint, biome, ruff, pyright, go vet, clippy, ' +
+          'Diagnostics from lens: tsc and the linters the project uses (eslint, biome, ruff, pyright, go vet, clippy, ' +
           'shellcheck, ...). Your edits are checked automatically and the result follows each Edit/Write. With `path`, checks ' +
           'that file now and lists every finding in it, old and new. Without, lists everything this session holds.',
         inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'A file to check now, relative to the project root or absolute.' } } },
@@ -530,7 +530,7 @@ export const register: Register = (on, options) => {
       $.tool.register({
         name: 'lens_diagnostic_mark',
         description:
-          'Triage a claude-code-lens finding by the #id its report shows. `false-positive`: the rule misfired here; hidden in this ' +
+          'Triage a lens finding by the #id its report shows. `false-positive`: the rule misfired here; hidden in this ' +
           'project from now on. `defer`: real, but out of scope now; hidden for this session. Prefer fixing; mark only what should ' +
           'not be fixed, and say why.',
         inputSchema: {
@@ -543,8 +543,8 @@ export const register: Register = (on, options) => {
           required: ['id', 'disposition', 'reason'],
         },
       }),
-      $.command.register({ name: 'lens', description: 'Diagnostics claude-code-lens holds for this session', argumentHint: '[clear-marks]' }),
-      $.command.register({ name: 'lens-health', description: 'claude-code-lens runners, tsc watchers and recent degradations' }),
+      $.command.register({ name: 'lens', description: 'Diagnostics lens holds for this session', argumentHint: '[clear-marks]' }),
+      $.command.register({ name: 'lens-health', description: 'lens runners, tsc watchers and recent degradations' }),
     ])
     // Warm the root project's tsc now, so the first edit already has a "before".
     const cfg = await config($)
