@@ -1,0 +1,11 @@
+{
+  "name": "lazygit-popup",
+  "version": "0.1.0",
+  "description": "alt+g opens lazygit in a tmux popup; ESC (or q) quits lazygit and closes it",
+  "author": {
+    "name": "Pedro La Rosa"
+  },
+  "homepage": "https://github.com/PedroLaRosa/claude-code-lazygit-popup",
+  "repository": "https://github.com/PedroLaRosa/claude-code-lazygit-popup",
+  "keywords": ["lazygit", "git", "tmux", "popup", "keybindings", "mod"]
+}
