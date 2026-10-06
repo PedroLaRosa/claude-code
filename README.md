@@ -38,3 +38,7 @@ The mod reads only what Claude Code hands it (`$.session`, `$.agent`, `$.clock`,
 claude plugin validate .
 claude plugin test .
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE).

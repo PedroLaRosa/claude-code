@@ -6,5 +6,6 @@
     "name": "PedroLaRosa"
   },
   "repository": "https://github.com/PedroLaRosa/token-weather-usage",
+  "license": "MIT",
   "types": "./types/index.d.ts"
 }
