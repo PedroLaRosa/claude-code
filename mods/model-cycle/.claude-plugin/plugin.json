@@ -5,8 +5,8 @@
   "author": {
     "name": "Pedro La Rosa"
   },
-  "homepage": "https://github.com/PedroLaRosa/claude-code-plugins/tree/main/plugins/model-cycle",
-  "repository": "https://github.com/PedroLaRosa/claude-code-plugins",
+  "homepage": "https://github.com/PedroLaRosa/claude-code/tree/main/mods/model-cycle",
+  "repository": "https://github.com/PedroLaRosa/claude-code",
   "keywords": [
     "model",
     "effort",

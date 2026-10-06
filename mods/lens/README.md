@@ -106,7 +106,7 @@ A runner runs the command you give it, just as a hook in `.claude/settings.json`
 ## Install
 
 ```
-/plugin install lens --marketplace PedroLaRosa/claude-code-plugins
+/plugin install lens --marketplace PedroLaRosa/claude-code
 ```
 
 Answer `y` to add the marketplace, then pick the user scope so it loads in every session.
@@ -116,8 +116,8 @@ Requirements: Claude Code with mods (built on 2.1.291), plus whichever of the to
 ## Hack on it
 
 ```bash
-git clone https://github.com/PedroLaRosa/claude-code-plugins ~/claude-code-plugins
-claude --plugin-dir ~/claude-code-plugins/plugins/lens
+git clone https://github.com/PedroLaRosa/claude-code ~/claude-code
+claude --plugin-dir ~/claude-code/mods/lens
 ```
 
 To load it in every session, add the folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`.

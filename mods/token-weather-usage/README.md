@@ -11,7 +11,7 @@ A Claude Code mod that draws a row of colored pills above the prompt: how full t
 ## Install
 
 ```
-/plugin install token-weather-usage --marketplace PedroLaRosa/claude-code-plugins
+/plugin install token-weather-usage --marketplace PedroLaRosa/claude-code
 ```
 
 Answer `y` to add the marketplace, then pick the user scope so it loads in every session.
