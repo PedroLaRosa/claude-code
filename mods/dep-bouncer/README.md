@@ -34,7 +34,7 @@ Double-check the package is the one you meant. If it is, ask the user to run the
 ## Install
 
 ```bash
-claude plugin marketplace add PedroLaRosa/claude-code-plugins
+claude plugin marketplace add PedroLaRosa/claude-code
 claude plugin install dep-bouncer@pedro-la-rosa-mods
 ```
 
@@ -49,8 +49,8 @@ Then run `/reload-plugins`.
 ## Hack on it
 
 ```bash
-git clone https://github.com/PedroLaRosa/claude-code-plugins ~/claude-code-plugins
-claude --plugin-dir ~/claude-code-plugins/plugins/dep-bouncer
+git clone https://github.com/PedroLaRosa/claude-code ~/claude-code
+claude --plugin-dir ~/claude-code/mods/dep-bouncer
 ```
 
 To load it in every session, add the folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`. The thresholds and the popular-names list are constants at the top of `hooks/register.ts`. Check changes with `claude plugin validate .` and `claude plugin test .`

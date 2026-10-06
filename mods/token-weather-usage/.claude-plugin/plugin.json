@@ -5,8 +5,8 @@
   "author": {
     "name": "Pedro La Rosa"
   },
-  "homepage": "https://github.com/PedroLaRosa/claude-code-plugins/tree/main/plugins/token-weather-usage",
-  "repository": "https://github.com/PedroLaRosa/claude-code-plugins",
+  "homepage": "https://github.com/PedroLaRosa/claude-code/tree/main/mods/token-weather-usage",
+  "repository": "https://github.com/PedroLaRosa/claude-code",
   "license": "MIT",
   "types": "./types/index.d.ts"
 }

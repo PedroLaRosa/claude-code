@@ -21,7 +21,7 @@ Install the tools with `brew install tmux lazygit` on macOS, or your package man
 ## Install
 
 ```bash
-claude plugin marketplace add PedroLaRosa/claude-code-plugins
+claude plugin marketplace add PedroLaRosa/claude-code
 claude plugin install lazygit-popup@pedro-la-rosa-mods
 ```
 
@@ -44,8 +44,8 @@ On macOS, make your terminal send Option as Alt (iTerm2: Profiles → Keys; Term
 ## Hack on it
 
 ```bash
-git clone https://github.com/PedroLaRosa/claude-code-plugins ~/claude-code-plugins
-claude --plugin-dir ~/claude-code-plugins/plugins/lazygit-popup
+git clone https://github.com/PedroLaRosa/claude-code ~/claude-code
+claude --plugin-dir ~/claude-code/mods/lazygit-popup
 ```
 
 To load it in every session, add the folder to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of `~/.claude/settings.json`. Popup size is the `-w` / `-h` pair in `hooks/register.tsx`. Check changes with `claude plugin validate .` and `claude plugin test .`

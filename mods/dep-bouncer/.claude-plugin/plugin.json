@@ -5,7 +5,7 @@
   "author": {
     "name": "Pedro La Rosa"
   },
-  "homepage": "https://github.com/PedroLaRosa/claude-code-plugins/tree/main/plugins/dep-bouncer",
-  "repository": "https://github.com/PedroLaRosa/claude-code-plugins",
+  "homepage": "https://github.com/PedroLaRosa/claude-code/tree/main/mods/dep-bouncer",
+  "repository": "https://github.com/PedroLaRosa/claude-code",
   "keywords": ["security", "supply-chain", "npm", "typosquat", "mod"]
 }
