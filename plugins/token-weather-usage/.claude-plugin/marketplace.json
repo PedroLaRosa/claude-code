@@ -1,0 +1,13 @@
+{
+  "name": "local-mods",
+  "owner": {
+    "name": "pedro-la-rosa"
+  },
+  "description": "Token weather usage band for Claude Code",
+  "plugins": [
+    {
+      "name": "token-weather-usage",
+      "source": "./"
+    }
+  ]
+}
