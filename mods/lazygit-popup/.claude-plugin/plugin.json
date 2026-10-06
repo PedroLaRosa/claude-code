@@ -7,5 +7,6 @@
   },
   "homepage": "https://github.com/PedroLaRosa/claude-code/tree/main/mods/lazygit-popup",
   "repository": "https://github.com/PedroLaRosa/claude-code",
+  "license": "MIT",
   "keywords": ["lazygit", "git", "tmux", "popup", "keybindings", "mod"]
 }
