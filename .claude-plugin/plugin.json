@@ -1,0 +1,11 @@
+{
+  "name": "dep-bouncer",
+  "version": "0.1.0",
+  "description": "Supply-chain gate: vets npm/pnpm/yarn/bun installs against the registry before they run",
+  "author": {
+    "name": "Pedro La Rosa"
+  },
+  "homepage": "https://github.com/PedroLaRosa/claude-code-dep-bouncer",
+  "repository": "https://github.com/PedroLaRosa/claude-code-dep-bouncer",
+  "keywords": ["security", "supply-chain", "npm", "typosquat", "mod"]
+}
