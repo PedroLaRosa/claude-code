@@ -1,4 +1,4 @@
-import type { EngineInterface, Register, ToolCallResult } from 'claude-code'
+import type { EngineInterface, FsEntry, Register, ToolCallResult } from 'claude-code'
 import { type Diag, type Tool, TOOLS, TS, bySeverity, customTool, idOf, keyOf, lineOf, parse, resolvePath, scanSecrets, tally, tscLine } from './lens'
 
 type Plan = { tool: Tool; bin: string; cwd: string; scope: string }
@@ -57,10 +57,11 @@ const rel = (p: string) => (p.startsWith(`${root}/`) ? p.slice(root.length + 1) 
 const firstLine = (s: string) => s.trim().split('\n')[0]!.slice(0, 200)
 const muted = (d: Diag) => deferred.has(keyOf(d)) || keyOf(d) in falsePositives
 
-function note($: EngineInterface, text: string) {
+// Keeps `text` for /lens-health and answers the debug log's line for it.
+function note(text: string) {
   ledger.push(`${new Date().toTimeString().slice(0, 8)} ${text}`)
   if (ledger.length > LEDGER) ledger.shift()
-  $.ui.log(`${NAME}: ${text}`, { to: 'debug' })
+  return `${NAME}: ${text}`
 }
 
 function cached<T>(map: Map<string, Promise<T>>, key: string, make: () => Promise<T>): Promise<T> {
@@ -68,8 +69,8 @@ function cached<T>(map: Map<string, Promise<T>>, key: string, make: () => Promis
   if (!hit) map.set(key, (hit = make()))
   return hit
 }
-function names($: EngineInterface, dir: string) {
-  return cached(listings, dir, () => $.fs.list(dir).then(entries => new Set(entries.map(e => e.name)), () => new Set<string>()))
+function names(dir: string, list: (dir: string) => Promise<FsEntry[]>) {
+  return cached(listings, dir, () => list(dir).then(entries => new Set(entries.map(e => e.name)), () => new Set<string>()))
 }
 function textOf($: EngineInterface, path: string) {
   return cached(texts, path, () => $.fs.read(path).catch(() => ''))
@@ -78,7 +79,7 @@ function textOf($: EngineInterface, path: string) {
 /** The nearest folder from `dir` up that holds one of `files` (`name#text`: one holding `text`). */
 async function findUp($: EngineInterface, dir: string, files: readonly string[]): Promise<string | undefined> {
   for (let d = dir; ; d = dirname(d)) {
-    const here = await names($, d)
+    const here = await names(d, p => $.fs.list(p))
     for (const f of files) {
       const [name, text] = f.split('#') as [string, string?]
       if (here.has(name) && (!text || (await textOf($, join(d, name))).includes(text))) return d
@@ -93,7 +94,7 @@ function resolveBin($: EngineInterface, bin: string, dir: string, local?: true):
     if (bin.includes('/')) return resolvePath(root, bin)
     for (let d = dir; ; d = dirname(d)) {
       for (const sub of ['node_modules/.bin', '.venv/bin', 'venv/bin'])
-        if ((await names($, join(d, sub))).has(bin)) return join(d, `${sub}/${bin}`)
+        if ((await names(join(d, sub), p => $.fs.list(p))).has(bin)) return join(d, `${sub}/${bin}`)
       if (d === '/') break
     }
     if (local) return null
@@ -113,7 +114,7 @@ async function config($: EngineInterface): Promise<Config> {
       runners: Array.isArray(raw.runners) ? raw.runners.map(customTool) : [],
     }
   } catch (err) {
-    note($, `.lens.json ignored: ${(err as Error).message}`)
+    $.ui.log(note(`.lens.json ignored: ${(err as Error).message}`), { to: 'debug' })
     return { disable: [], runners: [] }
   }
 }
@@ -176,7 +177,7 @@ async function runCheck($: EngineInterface, p: Plan, file: string, before = fals
     return true
   } catch (err) {
     s.fails++
-    note($, `${p.tool.id} on ${rel(file)} failed: ${(err as Error).message}`)
+    $.ui.log(note(`${p.tool.id} on ${rel(file)} failed: ${(err as Error).message}`), { to: 'debug' })
     return false
   } finally {
     s.ms += Date.now() - t0
@@ -251,7 +252,7 @@ function onTscLine($: EngineInterface, w: Watch, raw: string) {
     const d = tscLine(line, w.dir)
     if (d) w.pending.push(d)
     else if (/^\s+\S/.test(line) && w.pending.length) w.pending.at(-1)!.message += `\n${line.trim()}`
-    else if (/^\s*error TS\d+/.test(line)) note($, `tsc ${rel(w.tsconfig)}: ${firstLine(line)}`)
+    else if (/^\s*error TS\d+/.test(line)) $.ui.log(note(`tsc ${rel(w.tsconfig)}: ${firstLine(line)}`), { to: 'debug' })
     return
   }
   wakeAll(w)
@@ -275,9 +276,9 @@ function watch($: EngineInterface, tsconfig: string, bin: string): Watch {
         for (const line of lines) onTscLine($, w, line)
       }
     } catch (err) {
-      note($, `tsc watcher for ${rel(tsconfig)} failed: ${(err as Error).message}`)
+      $.ui.log(note(`tsc watcher for ${rel(tsconfig)} failed: ${(err as Error).message}`), { to: 'debug' })
     }
-    if (w.state !== 'stopped') note($, `tsc watcher for ${rel(tsconfig)} exited`)
+    if (w.state !== 'stopped') $.ui.log(note(`tsc watcher for ${rel(tsconfig)} exited`), { to: 'debug' })
     w.state = 'stopped'
     w.idle?.cancel()
     wakeAll(w)
@@ -288,7 +289,7 @@ function watch($: EngineInterface, tsconfig: string, bin: string): Watch {
 function keepWarm($: EngineInterface, w: Watch): Watch {
   w.idle?.cancel()
   w.idle = $.clock.after(IDLE_MS, () => {
-    note($, `tsc watcher for ${rel(w.tsconfig)} stopped after ${IDLE_MS / 60_000} idle minutes`)
+    $.ui.log(note(`tsc watcher for ${rel(w.tsconfig)} stopped after ${IDLE_MS / 60_000} idle minutes`), { to: 'debug' })
     w.state = 'stopped'
     w.stop()
   })
@@ -430,7 +431,7 @@ async function tidy($: EngineInterface, files: string[]) {
     const r = await $.process
       .run([p.bin, ...p.tool.argv(batch)], { cwd: p.cwd, env: ENV, timeoutMs: RUN_TIMEOUT_MS })
       .catch((err: Error) => ({ exitCode: -1, stdout: '', stderr: err.message }))
-    if (r.exitCode > 1 || r.exitCode < 0) note($, `${p.tool.id} failed: ${firstLine(r.stderr || r.stdout)}`)
+    if (r.exitCode > 1 || r.exitCode < 0) $.ui.log(note(`${p.tool.id} failed: ${firstLine(r.stderr || r.stdout)}`), { to: 'debug' })
     else used.add(p.tool.id)
   }
   let changed = 0
@@ -550,7 +551,7 @@ export const register: Register = (on, options) => {
     ])
     // Warm the root project's tsc now, so the first edit already has a "before".
     const cfg = await config($)
-    if (!cfg.disable.includes('tsc') && (await names($, root)).has('tsconfig.json')) {
+    if (!cfg.disable.includes('tsc') && (await names(root, p => $.fs.list(p))).has('tsconfig.json')) {
       const bin = await resolveBin($, 'tsc', root)
       if (bin) watch($, join(root, 'tsconfig.json'), bin)
     }

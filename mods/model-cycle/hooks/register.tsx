@@ -1,5 +1,6 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register } from 'claude-code'
+import type { EngineInterface, Register, Settings } from 'claude-code'
+import type { Level } from '../types'
 
 // Footer, right corner: `Opus 5.5 ϟϟϟ·· high`, model, meter and word in the level's color, xhigh shimmering, max cycling a rainbow.
 // alt+up / alt+down cycle the model (through /model), alt+left / alt+right the
@@ -44,14 +45,12 @@ let animated = false
 
 const wrap = (list: string[], at: number, dir: number) => list[(at + dir + list.length) % list.length]!
 
-// The engine's level for `model`: its last request's, else what /effort last printed,
-// else the saved default.
-async function engineLevel($: EngineInterface, model: string): Promise<string> {
-  const seen = await read($, base)
+// The engine's level for `model`: its last request's (`seen`), else what /effort last
+// printed (`said`), else the saved default, read from settings only then.
+async function engineLevel(model: string, seen: Level | null, said: string | null, settings: () => Promise<Settings>): Promise<string> {
   if (seen?.model === model) return seen.level
-  const said = await read($, printed)
   if (said !== null) return said
-  const s = await $.settings.read()
+  const s = await settings()
   const perModel = s.modelSettings as Record<string, { effortLevel?: unknown } | undefined> | undefined
   const saved = perModel?.[model.replace('[1m]', '')]?.effortLevel ?? s.effortLevel
   return typeof saved === 'string' ? saved : 'high'
@@ -60,7 +59,7 @@ async function engineLevel($: EngineInterface, model: string): Promise<string> {
 // Each press runs `/effort <level>` with the level the footer now shows, as typing it does.
 async function stepEffort($: EngineInterface, dir: number) {
   const model = await $.session.model()
-  const engine = await engineLevel($, model)
+  const engine = await engineLevel(model, await read($, base), await read($, printed), () => $.settings.read())
   const now = await read($, pick)
   const level = wrap(LEVELS, LEVELS.indexOf(now?.model === model ? now.level : engine), dir)
   await update($, pick, () => ({ model, level }))
@@ -206,7 +205,8 @@ export const register: Register = on => {
     const model = await $.session.model()
     drawnModel = model
     const chosen = await read($, pick)
-    const level = chosen?.model === model ? chosen.level : await engineLevel($, model)
+    const level =
+      chosen?.model === model ? chosen.level : await engineLevel(model, await read($, base), await read($, printed), () => $.settings.read())
     const filled = LEVELS.indexOf(level) + 1
     animated = level === 'xhigh' || level === 'max'
     const step = Math.floor((await $.clock.now()) / STEP_MS)
