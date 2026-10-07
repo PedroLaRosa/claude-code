@@ -3,8 +3,8 @@ import type { Elements, EngineInterface, Register, RenderChildren } from 'claude
 
 import type { Limit, View } from '../types'
 
-// A one-line row of colored pills above the prompt: context tokens with weather, 5h/7d limits
-// against the time elapsed, prompt cache time left, session cost, running subagents.
+// Two rows of colored pills above the prompt: context tokens with weather, prompt cache time left,
+// session cost and running subagents; under them, the 5h/7d limits against the time elapsed.
 // Reads $.session / $.agent / $.clock and four caching env vars; no network, files or processes.
 // ponytail: plain Unicode glyphs only (no Nerd Font, no emoji) so cell widths hold in any terminal.
 
@@ -139,8 +139,8 @@ export const register: Register = on => {
     const ui = $.ui.resolve(e)
     const { Box } = ui
     return (
-      <Box width={e.props.bodyColumns} flexDirection="row" flexWrap="wrap" justifyContent="center" columnGap={2}>
-        {pills(ui, v)}
+      <Box width={e.props.bodyColumns} flexDirection="column" rowGap={1} marginTop={1}>
+        {rows(ui, v)}
       </Box>
     )
   })
@@ -172,20 +172,32 @@ async function show($: EngineInterface) {
   await update($, view, () => ({ ...s, tokens: [...s.tokens], limits: [...s.limits], now }))
 }
 
-function pills(ui: UI, v: View) {
-  const out: RenderChildren[] = []
-  if (v.tokens.length > 0) out.push(contextPill(ui, v))
+function rows(ui: UI, v: View) {
+  const session: RenderChildren[] = []
+  if (v.tokens.length > 0) session.push(contextPill(ui, v))
+  session.push(cachePill(ui, v))
+  if (v.cost !== null && v.cost >= 0.005) session.push(costPill(ui, v))
+  if (v.agents > 0) session.push(agentsPill(ui, v.agents))
+  const limits: RenderChildren[] = []
   for (const l of v.limits) {
     if (Date.parse(l.resetsAt ?? '') <= v.now) continue // reset already: no valid reading
-    out.push(limitPill(ui, l, v.now))
+    limits.push(limitPill(ui, l, v.now))
   }
-  out.push(cachePill(ui, v))
-  if (v.cost !== null && v.cost >= 0.005) out.push(costPill(ui, v))
-  if (v.agents > 0) out.push(agentsPill(ui, v.agents))
-  return out
+  return [row(ui, 'session', session), row(ui, 'limits', limits)]
 }
 
-// ponytail: no border, so a pill is one row instead of three; the colored lead glyph marks where each starts.
+// One left-aligned row, a grey " | " between pills; an empty row draws nothing.
+function row({ Box, Text }: UI, key: string, items: RenderChildren[]) {
+  const shown = items.filter(Boolean)
+  if (shown.length === 0) return null
+  return (
+    <Box key={key} flexDirection="row" flexWrap="wrap">
+      {shown.flatMap((p, i) => (i > 0 ? [<Text key={`${key}-sep-${i}`} color="inactive"> | </Text>, p] : [p]))}
+    </Box>
+  )
+}
+
+// ponytail: no border, so a pill is one row instead of three; the separators in row() mark where each ends.
 function pill({ Box, Text }: UI, key: string, ...parts: RenderChildren[]) {
   return (
     <Box key={key} flexShrink={0}>
@@ -324,8 +336,8 @@ function duration(ms: number) {
   const m = Math.round(ms / MIN)
   if (m < 60) return `${m} min`
   const d = Math.floor(m / 1440)
-  const h = Math.floor((m % 1440) / 60)
-  return d > 0 ? `${d}d${String(h).padStart(2, '0')}h` : `${h}h${String(m % 60).padStart(2, '0')}`
+  const hours = Math.floor((m % 1440) / 60)
+  return d > 0 ? `${d}d${String(hours).padStart(2, '0')}h` : `${hours}h${String(m % 60).padStart(2, '0')}`
 }
 
 function clock(ms: number) {

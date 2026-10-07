@@ -37,6 +37,11 @@ test('band shows context, limit against the clock, cost and agents', async ($, o
     expect((await ui.find({ key: 'cost' }))?.text).toContain('≈ $41.07')
     expect((await ui.find({ key: 'agents' }))?.text).toContain('1 agent')
     expect((await ui.find({ key: 'cache' }))?.text).toContain('cache —')
+    // Session pills on one row, " | " between them; the limits on the row below.
+    const session = (await ui.find({ key: 'session' }))?.text
+    expect(session).toContain(' | ϟ cache — | ¤ ≈ $41.07 | ✻ 1 agent')
+    expect(session).not.toContain('5h')
+    expect((await ui.find({ key: 'limits' }))?.text).toContain('5h')
     await ui.unmount()
   }
 })
