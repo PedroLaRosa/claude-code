@@ -91,8 +91,8 @@ function displayName(model: string): string {
 // The `?` shortcuts list takes no plugin rows, so the keys live in /help and the
 // typeahead as /model-cycle's description, and in full as its output.
 // ponytail: copied from ~/.claude/keybindings.json; edit both when a key moves
-const KEYS = 'alt+↑/↓ model · alt+←/→ effort · alt+. ultracode'
-const KEY_TABLE = [
+const SHORTCUTS = 'alt+↑/↓ model · alt+←/→ effort · alt+. ultracode'
+const SHORTCUT_TABLE = [
   'keys (bound in ~/.claude/keybindings.json):',
   '  alt+↑ / alt+↓   previous / next model (runs /model)',
   '  alt+← / alt+→   lower / higher effort (runs /effort)',
@@ -133,10 +133,7 @@ async function setupKeys($: EngineInterface): Promise<string> {
       added.push(key)
     } else if (now !== action) kept.push(`${key} (already ${now ?? 'unbound'})`)
   }
-  if (added.length > 0) {
-    const out = { $schema: 'https://www.schemastore.org/claude-code-keybindings.json', ...file }
-    await $.fs.write(path, `${JSON.stringify(out, null, 2)}\n`)
-  }
+  if (added.length > 0) await $.fs.write(path, `${JSON.stringify(file, null, 2)}\n`)
 
   return [
     added.length > 0 ? `Bound ${added.join(', ')} in ~/.claude/keybindings.json.` : 'The keys are already bound.',
@@ -147,7 +144,7 @@ async function setupKeys($: EngineInterface): Promise<string> {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'model-cycle', description: `Keys: ${KEYS} · "setup" binds them`, argumentHint: '[setup]' })
+    await $.command.register({ name: 'model-cycle', description: `Keys: ${SHORTCUTS} · "setup" binds them`, argumentHint: '[setup]' })
 
     // ponytail: one standing timer; it only redraws while max is showing
     $.clock.every(STEP_MS, () => {
@@ -158,7 +155,7 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'model-cycle' }, async ($, e) => ({
-    text: e.args.trim() === 'setup' ? await setupKeys($) : KEY_TABLE,
+    text: e.args.trim() === 'setup' ? await setupKeys($) : SHORTCUT_TABLE,
   }))
 
   on('turn.step', async function* ($, e, next) {

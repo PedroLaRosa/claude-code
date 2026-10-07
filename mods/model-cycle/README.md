@@ -2,7 +2,7 @@
 
 A [Claude Code mod](https://code.claude.com/docs) that lets you switch **model**, **effort** and **ultracode** with one keystroke, and shows the current model and effort in the footer.
 
-![model-cycle demo: cycling model, effort and ultracode with the keyboard](assets/demo.gif)
+![model-cycle demo: cycling model, effort and ultracode with the keyboard](https://raw.githubusercontent.com/PedroLaRosa/claude-code/main/assets/model-cycle-demo.gif)
 
 ## Why
 
@@ -91,7 +91,7 @@ To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-
 
 - **Meter glyphs:** edit `ϟ` (filled) and `·` (empty) in the `SessionMode` render hook of `hooks/register.tsx`. If `ϟ` renders as a letter in your font, swap it for `↯`.
 - **Model list:** edit `MODELS` at the top of `hooks/register.tsx` (`fable, opus, sonnet, haiku`).
-- **Different keys:** change them in `keybindings.json` (keep the `strip:jump5-9` actions), and update `BINDINGS`, `KEYS` and `KEY_TABLE` in `hooks/register.tsx`.
+- **Different keys:** change them in `keybindings.json` (keep the `strip:jump5-9` actions), and update `BINDINGS`, `SHORTCUTS` and `SHORTCUT_TABLE` in `hooks/register.tsx`.
 - **Check your change:** `claude plugin validate .` and `claude plugin test .`
 
 ## How it works
@@ -99,6 +99,11 @@ To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-
 Mods can't read keys directly. Instead the mod draws five hidden buttons above the prompt, each tied to a built-in `strip:jump` action, and your keybindings fire those actions. Each effort step runs `/effort <level>`. A press mid-turn runs `/effort` once the turn ends; until then the picked level is written onto the turn's remaining main-thread requests (subagents keep theirs).
 
 Claude Code gives mods no way to read its effort, so the footer follows the line `/effort` and the model picker print (`Set effort level to max (this session only)`, `… with high effort`). Typing a level, the slider, its `s` for this session only, and Esc all show up straight away. Picking a level there replaces a key's pick.
+
+## What it runs and writes
+
+- **Slash commands:** `alt+←/→` runs `/effort <level>`, `alt+.` runs `/effort ultracode on|off`, and `alt+↑/↓` runs `/model <name>`, once per key press (after the turn ends, if a turn is running). It runs nothing else, and nothing without a key press.
+- **Files:** only `/model-cycle setup` writes a file: it adds the five keys to `~/.claude/keybindings.json` (found through `HOME`). It writes nothing when every key is already bound. Nothing is sent off your machine.
 
 ## Limits
 
