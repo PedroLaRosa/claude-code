@@ -10,7 +10,7 @@ const BAND: RenderPropsOf['AbovePrompt'] = {
   view: {},
 }
 
-test('the band keys cycle effort (wrapping) and model; the footer shows both', async ($, on) => {
+test('the band keys cycle effort (wrapping, each step through /effort) and model; the footer shows both', async ($, on) => {
   const ran: string[] = []
   const sent: unknown[] = []
   on('turn.step', async function* ($, e) {
@@ -39,6 +39,7 @@ test('the band keys cycle effort (wrapping) and model; the footer shows both', a
   expect(await colors()).toEqual(['#87D7FF', '#87D7FF', '#87D7FF'])
   await band.press({ key: 'effort-up' })
   expect(await shown()).toContain('ϟϟϟϟ· xhigh')
+  expect(ran.at(-1)).toBe('effort xhigh')
   // The clock is frozen at step 0, so the shimmer sits on the first character.
   const xhigh = await colors()
   expect(xhigh.length).toBe('Opus 5.5 '.length + 4 + 'xhigh'.length)
@@ -47,8 +48,10 @@ test('the band keys cycle effort (wrapping) and model; the footer shows both', a
   await band.press({ key: 'effort-up' })
   await band.press({ key: 'effort-up' })
   expect(await shown()).toContain('ϟ···· low')
+  expect(ran.at(-1)).toBe('effort low')
   await band.press({ key: 'effort-down' })
   expect(await shown()).toContain('ϟϟϟϟϟ max')
+  expect(ran).toEqual(['effort xhigh', 'effort max', 'effort low', 'effort max'])
   // At max each character is a step further round the rainbow (the clock is frozen at step 0).
   expect((await colors()).slice(0, 3)).toEqual(['#D7005F', '#FFAF5F', '#D7D787'])
 
@@ -112,6 +115,7 @@ test('the footer follows every level /effort or the model picker prints, saved o
   on('settings.read', () => ({ value: { effortLevel: 'medium' } }))
   on('clock.now', () => ({ value: 0 }))
   on('ui.render', { component: 'AbovePrompt' }, (): RenderElement => ({ type: 'Box', children: [] }))
+  on('command.run', () => ({}))
   // Nothing in a test stores a row (the bottom throws), so an append rejects once the mod has read it.
   const append = (r: EventOf['session.append']) => $.session.append(r).catch(() => undefined)
 

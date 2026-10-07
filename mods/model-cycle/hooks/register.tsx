@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 // Footer, right corner: `Opus 5.5 ϟϟϟ·· high`, model, meter and word in the level's color, xhigh shimmering, max cycling a rainbow.
 // alt+up / alt+down cycle the model (through /model), alt+left / alt+right the
-// effort, alt+. toggles ultracode (`/effort ultracode on|off`). A key
+// effort (through /effort), alt+. toggles ultracode (`/effort ultracode on|off`). A key
 // reaches a mod only through a Button in the band above the prompt naming an engine
 // action, so ~/.claude/keybindings.json binds the keys to strip:jump5-9 (idle at the
 // prompt) and hidden Buttons there take them. Shift alone never presses a mod's Button.
@@ -19,8 +19,8 @@ const SHIMMER = '#DEC8FF'
 const SHIMMER_REST = 3
 const STEP_MS = 110
 
-// The keys' pick, sent on that model's main-thread requests: this session only,
-// nothing saved and no /effort row in the transcript.
+// The keys' pick, until the /effort row it ran prints. A press mid-turn waits for the
+// turn to end to run /effort, so meanwhile the pick goes on that model's main-thread requests.
 const pick = atom({ plugin: 'model-cycle', key: 'pick' } as const, null)
 // The level the engine itself last sent on the main thread.
 const base = atom({ plugin: 'model-cycle', key: 'base' } as const, null)
@@ -57,13 +57,14 @@ async function engineLevel($: EngineInterface, model: string): Promise<string> {
   return typeof saved === 'string' ? saved : 'high'
 }
 
+// Each press runs `/effort <level>` with the level the footer now shows, as typing it does.
 async function stepEffort($: EngineInterface, dir: number) {
   const model = await $.session.model()
   const engine = await engineLevel($, model)
-  await update($, pick, now => ({
-    model,
-    level: wrap(LEVELS, LEVELS.indexOf(now?.model === model ? now.level : engine), dir),
-  }))
+  const now = await read($, pick)
+  const level = wrap(LEVELS, LEVELS.indexOf(now?.model === model ? now.level : engine), dir)
+  await update($, pick, () => ({ model, level }))
+  await $.command.run({ command: 'effort', args: level })
 }
 
 // The press notes its ask itself; the row /effort prints, if it reaches the hook, agrees.
@@ -95,7 +96,7 @@ const KEYS = 'alt+↑/↓ model · alt+←/→ effort · alt+. ultracode'
 const KEY_TABLE = [
   'keys (bound in ~/.claude/keybindings.json):',
   '  alt+↑ / alt+↓   previous / next model (runs /model)',
-  '  alt+← / alt+→   lower / higher effort (this session)',
+  '  alt+← / alt+→   lower / higher effort (runs /effort)',
   '  alt+.           ultracode on / off (/effort ultracode)',
 ].join('\n')
 

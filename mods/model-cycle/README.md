@@ -68,12 +68,12 @@ Update with `claude plugin update model-cycle@pedro-la-rosa-mods`. Remove with `
 | Key               | Action                                        |
 | ----------------- | --------------------------------------------- |
 | `alt+↑` / `alt+↓` | previous / next model (runs `/model`)         |
-| `alt+←` / `alt+→` | lower / higher effort (wraps around)          |
+| `alt+←` / `alt+→` | lower / higher effort (runs `/effort`, wraps) |
 | `alt+.`           | ultracode on / off (runs `/effort ultracode`) |
 
 `/model-cycle` prints this table inside Claude Code; it also shows in `/help` and the `/` menu.
 
-- **Effort** changes apply to this session only. Nothing is saved.
+- **Effort** changes run `/effort <level>` with the level the footer shows, same as typing it.
 - **Model** changes run `/model`, so the new model becomes your saved default, same as typing it.
 - **Ultracode** needs dynamic workflows enabled and a model that supports it. If Claude Code refuses, the press does nothing; `/effort ultracode on` shows why.
 - These keys replace Claude Code's defaults for `alt+↑/↓` (diff file list) and `alt+←/→` (word jumps in the prompt).
@@ -96,12 +96,11 @@ To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-
 
 ## How it works
 
-Mods can't read keys directly. Instead the mod draws five hidden buttons above the prompt, each tied to a built-in `strip:jump` action, and your keybindings fire those actions. Effort is applied by rewriting the effort on each main-thread request (subagents keep theirs), so no `/effort` rows clutter the transcript.
+Mods can't read keys directly. Instead the mod draws five hidden buttons above the prompt, each tied to a built-in `strip:jump` action, and your keybindings fire those actions. Each effort step runs `/effort <level>`. A press mid-turn runs `/effort` once the turn ends; until then the picked level is written onto the turn's remaining main-thread requests (subagents keep theirs).
 
 Claude Code gives mods no way to read its effort, so the footer follows the line `/effort` and the model picker print (`Set effort level to max (this session only)`, `… with high effort`). Typing a level, the slider, its `s` for this session only, and Esc all show up straight away. Picking a level there replaces a key's pick.
 
 ## Limits
 
 - Plain `shift+arrow` can't be used: Claude Code doesn't deliver shift-only keys to mod buttons.
-- An `alt+←/→` pick is sent with each request and never saved, so Claude Code's own effort displays (where the `/effort` slider opens, the `● high · /effort` note) keep showing its level. The footer shows what is actually sent.
 - If Claude Code refuses an `alt+.` (ultracode not available), the next press may look like a no-op while it catches up. Claude Code's own `· ultracode` indicator above the prompt is always accurate.
