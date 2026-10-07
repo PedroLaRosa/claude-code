@@ -1,11 +1,9 @@
 # token-weather-usage
 
-A Claude Code mod that draws a row of colored pills above the prompt: how full the context is, your 5h and 7d plan limits against the time elapsed, how long the prompt cache has left, what the session has cost, and how many subagents are running.
+A Claude Code mod that draws a one-line row of colored pills above the prompt: how full the context is, your 5h and 7d plan limits against the time elapsed, how long the prompt cache has left, what the session has cost, and how many subagents are running.
 
 ```
-╭─────────────────────────╮ ╭─────────────────────────────────╮ ╭──────────────────────────╮ ╭────────────────────╮ ╭───────────────────────╮ ╭────────────╮
-│ ☁ 312k │ ▄▃▄▂█ ▲ +27.4k │ │ ◑ 5h ━━━━━ 48% │ ↻ 2h54 → 21:32 │ │ ▦ 7d ━━━━━ 52% │ ↻ 3d02h │ │ ϟ cache 99% │ 1h00 │ │ ¤ ≈ $18.42 │ ❯ +$2.31 │ │ ✻ 3 agents │
-╰─────────────────────────╯ ╰─────────────────────────────────╯ ╰──────────────────────────╯ ╰────────────────────╯ ╰───────────────────────╯ ╰────────────╯
+☁ 312k ▄▃▄▂█ ▲ +27.4k  ◑ 5h ━━━━━ 48% ↻ 2h54 → 21:32  ▦ 7d ━━━━━ 52% ↻ 3d02h  ϟ cache 99% 1h00  ¤ ≈ $18.42 ❯ +$2.31  ✻ 3 agents
 ```
 
 ## Install

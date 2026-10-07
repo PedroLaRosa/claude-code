@@ -3,8 +3,8 @@ import type { Elements, EngineInterface, Register, RenderChildren } from 'claude
 
 import type { Limit, View } from '../types'
 
-// A row of colored pills above the prompt: context tokens with weather, 5h/7d limits against
-// the time elapsed, prompt cache time left, session cost, running subagents.
+// A one-line row of colored pills above the prompt: context tokens with weather, 5h/7d limits
+// against the time elapsed, prompt cache time left, session cost, running subagents.
 // Reads $.session / $.agent / $.clock and four caching env vars; no network, files or processes.
 // ponytail: plain Unicode glyphs only (no Nerd Font, no emoji) so cell widths hold in any terminal.
 
@@ -21,9 +21,8 @@ const HISTORY = 12
 const COMPACT_AT = 100_000
 const CACHE_SOON = 10 * MIN
 
-// Pill outlines and accents; neutral parts use theme keys (subtle, inactive) to follow light and dark.
+// Pill accents; neutral parts use theme keys (subtle, inactive) to follow light and dark.
 const HUE: Record<string, string> = {
-  context: '#7c8cf8',
   five_hour: '#3fb97f',
   seven_day: '#a07cf0',
   spend_limit: '#e0b040',
@@ -140,7 +139,7 @@ export const register: Register = on => {
     const ui = $.ui.resolve(e)
     const { Box } = ui
     return (
-      <Box width={e.props.bodyColumns} flexDirection="row" flexWrap="wrap" justifyContent="center" columnGap={1}>
+      <Box width={e.props.bodyColumns} flexDirection="row" flexWrap="wrap" justifyContent="center" columnGap={2}>
         {pills(ui, v)}
       </Box>
     )
@@ -186,17 +185,16 @@ function pills(ui: UI, v: View) {
   return out
 }
 
-function pill({ Box, Text }: UI, key: string, hue: string, ...parts: RenderChildren[]) {
+// ponytail: no border, so a pill is one row instead of three; the colored lead glyph marks where each starts.
+function pill({ Box, Text }: UI, key: string, ...parts: RenderChildren[]) {
   return (
-    <Box key={key} borderStyle="round" borderColor={hue} paddingX={1} flexShrink={0}>
+    <Box key={key} flexShrink={0}>
       <Text wrap="truncate">{parts}</Text>
     </Box>
   )
 }
 
-const sep = ({ Text }: UI) => <Text color="subtle"> │ </Text>
-
-// ☀ 48k │ ▂▅▁▃▇ ▲ +5.3k: weather by share of the window, a bar per turn's growth, the last step.
+// ☀ 48k ▂▅▁▃▇ ▲ +5.3k: weather by share of the window, a bar per turn's growth, the last step.
 function contextPill(ui: UI, v: View) {
   const { Text } = ui
   const cur = v.tokens[v.tokens.length - 1] ?? 0
@@ -209,16 +207,15 @@ function contextPill(ui: UI, v: View) {
   return pill(
     ui,
     'context',
-    HUE.context!,
     <Text color={w.color}>{w.icon}</Text>,
     ' ',
     <Text bold>{short(cur)}</Text>,
-    bars ? [sep(ui), <Text color="inactive">{bars.slice(0, -1)}</Text>, <Text color={w.color}>{bars.slice(-1)}</Text>] : null,
+    bars ? [' ', <Text color="inactive">{bars.slice(0, -1)}</Text>, <Text color={w.color}>{bars.slice(-1)}</Text>] : null,
     diff !== 0 ? <Text dimColor>{` ${diff > 0 ? '▲ +' : '▼ −'}${short(Math.abs(diff))}`}</Text> : null,
   )
 }
 
-// ◔ 5h ━━╍╍━━━━━━ 22% │ ↻ 3h00 → 20:40
+// ◔ 5h ━╍━━━ 22% ↻ 3h00 → 20:40
 function limitPill(ui: UI, l: Limit, now: number) {
   const { Text } = ui
   const used = Math.max(0, l.percentUsed)
@@ -235,13 +232,12 @@ function limitPill(ui: UI, l: Limit, now: number) {
   return pill(
     ui,
     l.kind,
-    hue,
     <Text color={hue}>{icon}</Text>,
     ` ${LABEL[l.kind] ?? l.kind} `,
     gauge(ui, used, elapsed, level),
     ' ',
     <Text bold color={hot ? level : undefined}>{`${Math.round(used)}%`}</Text>,
-    when ? [sep(ui), <Text dimColor>{`↻ ${when}`}</Text>] : null,
+    when ? [' ', <Text dimColor>{`↻ ${when}`}</Text>] : null,
   )
 }
 
@@ -269,12 +265,12 @@ function cacheTtl(v: View) {
   return plan.length > 0 && plan.every(l => l.percentUsed < 100) ? HOUR : 5 * MIN
 }
 
-// ϟ cache 98% │ 54 min, amber under 10 min, red once expired.
+// ϟ cache 98% 54 min, amber under 10 min, red once expired.
 function cachePill(ui: UI, v: View) {
   if (v.cacheOff) return null
   const { Text } = ui
   const head = (hue: string) => [<Text color={hue}>ϟ</Text>, ' cache ']
-  if (!v.cache) return pill(ui, 'cache', HUE.cache!, head(HUE.cache!), <Text dimColor>—</Text>)
+  if (!v.cache) return pill(ui, 'cache', head(HUE.cache!), <Text dimColor>—</Text>)
   const total = v.cache.read + v.cache.write + v.cache.fresh
   const hit = total > 0 ? Math.round((v.cache.read / total) * 100) : 0
   const left = v.cache.at + cacheTtl(v) - v.now
@@ -283,14 +279,13 @@ function cachePill(ui: UI, v: View) {
     return pill(
       ui,
       'cache',
-      HUE.hot!,
       head(HUE.hot!),
       <Text bold color={HUE.hot}>expired</Text>,
-      big ? [sep(ui), <Text dimColor>/compact</Text>] : null,
+      big ? [' ', <Text dimColor>/compact</Text>] : null,
     )
   }
   if (hit < 50 && v.cache.write > 1_000) {
-    return pill(ui, 'cache', HUE.warn!, head(HUE.warn!), <Text bold>{`${hit}%`}</Text>, sep(ui), <Text color={HUE.warn}>missed</Text>)
+    return pill(ui, 'cache', head(HUE.warn!), <Text bold>{`${hit}%`}</Text>, ' ', <Text color={HUE.warn}>missed</Text>)
   }
   const soon = left < CACHE_SOON
   const hue = soon ? HUE.warn! : HUE.cache!
@@ -298,32 +293,30 @@ function cachePill(ui: UI, v: View) {
   return pill(
     ui,
     'cache',
-    hue,
     head(hue),
     <Text bold>{`${hit}%`}</Text>,
-    sep(ui),
+    ' ',
     soon ? <Text bold color={HUE.warn}>{time}</Text> : <Text dimColor>{time}</Text>,
   )
 }
 
-// ¤ ≈ $18.42 │ ❯ +$2.31: the session so far, then what the last prompt added.
+// ¤ ≈ $18.42 ❯ +$2.31: the session so far, then what the last prompt added.
 function costPill(ui: UI, v: View) {
   const { Text } = ui
   const last = v.lastPrompt
   return pill(
     ui,
     'cost',
-    HUE.cost!,
     <Text color={HUE.cost}>¤</Text>,
     ' ≈ ',
     <Text bold>{`$${(v.cost ?? 0).toFixed(2)}`}</Text>,
-    last !== null && last >= 0.005 ? [sep(ui), <Text dimColor>{`❯ +$${last.toFixed(2)}`}</Text>] : null,
+    last !== null && last >= 0.005 ? [' ', <Text dimColor>{`❯ +$${last.toFixed(2)}`}</Text>] : null,
   )
 }
 
 function agentsPill(ui: UI, n: number) {
   const { Text } = ui
-  return pill(ui, 'agents', HUE.agents!, <Text color={HUE.agents}>✻</Text>, ' ', <Text bold>{String(n)}</Text>, n === 1 ? ' agent' : ' agents')
+  return pill(ui, 'agents', <Text color={HUE.agents}>✻</Text>, ' ', <Text bold>{String(n)}</Text>, n === 1 ? ' agent' : ' agents')
 }
 
 // 3h02, 42 min, 2d23h.
