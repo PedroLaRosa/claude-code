@@ -28,8 +28,8 @@
       "keywords": ["lint", "typescript", "tsc", "eslint", "diagnostics", "lsp", "mod"]
     },
     {
-      "name": "model-cycle",
-      "source": "./mods/model-cycle",
+      "name": "model-effort-switcher",
+      "source": "./mods/model-effort-switcher",
       "description": "Switch model, effort and ultracode with one keystroke; shows the model and effort in the footer.",
       "category": "productivity",
       "keywords": ["model", "effort", "ultracode", "keybindings", "mod"]

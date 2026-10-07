@@ -1,11 +1,11 @@
 {
-  "name": "model-cycle",
+  "name": "model-effort-switcher",
   "version": "0.1.0",
   "description": "Shows the model and effort under the prompt, cycled with alt+up/down (model), alt+left/right (effort) and alt+. (ultracode)",
   "author": {
     "name": "Pedro La Rosa"
   },
-  "homepage": "https://github.com/PedroLaRosa/claude-code/tree/main/mods/model-cycle",
+  "homepage": "https://github.com/PedroLaRosa/claude-code/tree/main/mods/model-effort-switcher",
   "repository": "https://github.com/PedroLaRosa/claude-code",
   "license": "MIT",
   "keywords": [

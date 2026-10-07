@@ -22,16 +22,16 @@ const STEP_MS = 110
 
 // The keys' pick, until the /effort row it ran prints. A press mid-turn waits for the
 // turn to end to run /effort, so meanwhile the pick goes on that model's main-thread requests.
-const pick = atom({ plugin: 'model-cycle', key: 'pick' } as const, null)
+const pick = atom({ plugin: 'model-effort-switcher', key: 'pick' } as const, null)
 // The level the engine itself last sent on the main thread.
-const base = atom({ plugin: 'model-cycle', key: 'base' } as const, null)
+const base = atom({ plugin: 'model-effort-switcher', key: 'base' } as const, null)
 // The level /effort or the model picker last printed. The engine keeps one for every
 // model; null after `auto`, so the saved default applies.
-const printed = atom({ plugin: 'model-cycle', key: 'printed' } as const, null)
+const printed = atom({ plugin: 'model-effort-switcher', key: 'printed' } as const, null)
 // Whether ultracode is on, as /effort last printed it or the key last asked.
 // ponytail: a refused `on` from the key costs one press to resync; the engine draws the
 // truth itself (`· ultracode` above the prompt)
-const ultra = atom({ plugin: 'model-cycle', key: 'ultra' } as const, false)
+const ultra = atom({ plugin: 'model-effort-switcher', key: 'ultra' } as const, false)
 
 // What /effort and the model picker print as they set a level: `Set effort level to max
 // (this session only): …`, `Effort level set to auto`, `…; set to 'xhigh' instead`,
@@ -89,7 +89,7 @@ function displayName(model: string): string {
 }
 
 // The `?` shortcuts list takes no plugin rows, so the keys live in /help and the
-// typeahead as /model-cycle's description, and in full as its output.
+// typeahead as /model-effort-switcher's description, and in full as its output.
 // ponytail: copied from ~/.claude/keybindings.json; edit both when a key moves
 const SHORTCUTS = 'alt+↑/↓ model · alt+←/→ effort · alt+. ultracode'
 const SHORTCUT_TABLE = [
@@ -109,7 +109,7 @@ const BINDINGS: Record<string, string> = {
 
 type KeybindingsFile = { bindings?: { context: string; bindings: Record<string, string | null> }[] }
 
-// `/model-cycle setup`: merges BINDINGS into ~/.claude/keybindings.json, leaving
+// `/model-effort-switcher setup`: merges BINDINGS into ~/.claude/keybindings.json, leaving
 // any key the person already bound to something else alone.
 async function setupKeys($: EngineInterface): Promise<string> {
   const path = `${await $.env.get('HOME')}/.claude/keybindings.json`
@@ -118,7 +118,7 @@ async function setupKeys($: EngineInterface): Promise<string> {
     try {
       file = JSON.parse(await $.fs.read(path))
     } catch {
-      return `${path} is not valid JSON, so nothing was changed. Fix it and run /model-cycle setup again.`
+      return `${path} is not valid JSON, so nothing was changed. Fix it and run /model-effort-switcher setup again.`
     }
   }
   const all = (file.bindings ??= [])
@@ -144,7 +144,7 @@ async function setupKeys($: EngineInterface): Promise<string> {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'model-cycle', description: `Keys: ${SHORTCUTS} · "setup" binds them`, argumentHint: '[setup]' })
+    await $.command.register({ name: 'model-effort-switcher', description: `Keys: ${SHORTCUTS} · "setup" binds them`, argumentHint: '[setup]' })
 
     // ponytail: one standing timer; it only redraws while max is showing
     $.clock.every(STEP_MS, () => {
@@ -154,7 +154,7 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'model-cycle' }, async ($, e) => ({
+  on('command.run', { command: 'model-effort-switcher' }, async ($, e) => ({
     text: e.args.trim() === 'setup' ? await setupKeys($) : SHORTCUT_TABLE,
   }))
 

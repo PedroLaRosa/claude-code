@@ -1,8 +1,8 @@
-# model-cycle
+# model-effort-switcher
 
 A [Claude Code mod](https://code.claude.com/docs) that lets you switch **model**, **effort** and **ultracode** with one keystroke, and shows the current model and effort in the footer.
 
-![model-cycle demo: cycling model, effort and ultracode with the keyboard](https://raw.githubusercontent.com/PedroLaRosa/claude-code/main/assets/model-cycle-demo.gif)
+![model-effort-switcher demo: cycling model, effort and ultracode with the keyboard](https://raw.githubusercontent.com/PedroLaRosa/claude-code/main/assets/model-effort-switcher-demo.gif)
 
 ## Why
 
@@ -22,7 +22,7 @@ Paste this into a Claude Code session and it does the rest:
 ```text
 Install the Claude Code mod from github.com/PedroLaRosa/claude-code:
 1. Run `claude plugin marketplace add PedroLaRosa/claude-code`, then
-   `claude plugin install model-cycle@pedro-la-rosa-claude-code`.
+   `claude plugin install model-effort-switcher@pedro-la-rosa-claude-code`.
 2. Merge these into the "Global" bindings of ~/.claude/keybindings.json (create the
    file if missing, keep every existing binding, don't overwrite a key that is already
    bound; tell me about any conflict):
@@ -38,21 +38,21 @@ Install the Claude Code mod from github.com/PedroLaRosa/claude-code:
 
 ```bash
 claude plugin marketplace add PedroLaRosa/claude-code
-claude plugin install model-cycle@pedro-la-rosa-claude-code
+claude plugin install model-effort-switcher@pedro-la-rosa-claude-code
 ```
 
 Or from inside a session:
 
 ```
 /plugin marketplace add PedroLaRosa/claude-code
-/plugin install model-cycle@pedro-la-rosa-claude-code
+/plugin install model-effort-switcher@pedro-la-rosa-claude-code
 /reload-plugins
 ```
 
 Then bind the keys with one command (a mod can't ship keybindings, so it writes them for you):
 
 ```
-/model-cycle setup
+/model-effort-switcher setup
 ```
 
 It merges five keys into `~/.claude/keybindings.json` and never overwrites a key you already bound to something else.
@@ -61,7 +61,7 @@ It merges five keys into `~/.claude/keybindings.json` and never overwrites a key
 
 **Last step: make your terminal send Alt.** On macOS, Option usually types a symbol instead of acting as Alt. Turn on "Option as Alt" in your terminal (iTerm2: Profiles → Keys; Terminal.app: _Use Option as Meta key_; kitty: `macos_option_as_alt yes`). To change only `alt+.` in kitty, leave that setting off and add `map opt+period send_text all \x1b.` to `kitty.conf`.
 
-Update with `claude plugin update model-cycle@pedro-la-rosa-claude-code`. Remove with `claude plugin uninstall model-cycle@pedro-la-rosa-claude-code` (and delete the five keys from `keybindings.json`).
+Update with `claude plugin update model-effort-switcher@pedro-la-rosa-claude-code`. Remove with `claude plugin uninstall model-effort-switcher@pedro-la-rosa-claude-code` (and delete the five keys from `keybindings.json`).
 
 ## Keys
 
@@ -71,7 +71,7 @@ Update with `claude plugin update model-cycle@pedro-la-rosa-claude-code`. Remove
 | `alt+←` / `alt+→` | lower / higher effort (runs `/effort`, wraps) |
 | `alt+.`           | ultracode on / off (runs `/effort ultracode`) |
 
-`/model-cycle` prints this table inside Claude Code; it also shows in `/help` and the `/` menu.
+`/model-effort-switcher` prints this table inside Claude Code; it also shows in `/help` and the `/` menu.
 
 - **Effort** changes run `/effort <level>` with the level the footer shows, same as typing it.
 - **Model** changes run `/model`, so the new model becomes your saved default, same as typing it.
@@ -84,10 +84,10 @@ Clone it and load the folder directly instead of installing:
 
 ```bash
 git clone https://github.com/PedroLaRosa/claude-code ~/claude-code
-claude --plugin-dir ~/claude-code/mods/model-cycle
+claude --plugin-dir ~/claude-code/mods/model-effort-switcher
 ```
 
-To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-code/mods/model-cycle" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
+To load it in every session, add `"env": { "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-code/mods/model-effort-switcher" }` to `~/.claude/settings.json`. Saving a file reloads the mod.
 
 - **Meter glyphs:** edit `ϟ` (filled) and `·` (empty) in the `SessionMode` render hook of `hooks/register.tsx`. If `ϟ` renders as a letter in your font, swap it for `↯`.
 - **Model list:** edit `MODELS` at the top of `hooks/register.tsx` (`fable, opus, sonnet, haiku`).
@@ -103,7 +103,7 @@ Claude Code gives mods no way to read its effort, so the footer follows the line
 ## What it runs and writes
 
 - **Slash commands:** `alt+←/→` runs `/effort <level>`, `alt+.` runs `/effort ultracode on|off`, and `alt+↑/↓` runs `/model <name>`, once per key press (after the turn ends, if a turn is running). It runs nothing else, and nothing without a key press.
-- **Files:** only `/model-cycle setup` writes a file: it adds the five keys to `~/.claude/keybindings.json` (found through `HOME`). It writes nothing when every key is already bound. Nothing is sent off your machine.
+- **Files:** only `/model-effort-switcher setup` writes a file: it adds the five keys to `~/.claude/keybindings.json` (found through `HOME`). It writes nothing when every key is already bound. Nothing is sent off your machine.
 
 ## Limits
 
