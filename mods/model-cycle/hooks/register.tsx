@@ -69,9 +69,9 @@ async function stepEffort($: EngineInterface, dir: number) {
 
 // The press notes its ask itself; the row /effort prints, if it reaches the hook, agrees.
 async function toggleUltra($: EngineInterface) {
-  const on = !(await read($, ultra))
-  await update($, ultra, () => on)
-  await $.command.run({ command: 'effort', args: `ultracode ${on ? 'on' : 'off'}` })
+  const isUltra = !(await read($, ultra))
+  await update($, ultra, () => isUltra)
+  await $.command.run({ command: 'effort', args: `ultracode ${isUltra ? 'on' : 'off'}` })
 }
 
 // /model saves the pick as the default and leaves a row, as typing it does;
