@@ -24,7 +24,7 @@ From a shell:
 
 ```bash
 claude plugin marketplace add PedroLaRosa/claude-code
-claude plugin install <plugin>@pedro-la-rosa-mods
+claude plugin install <plugin>@pedro-la-rosa-claude-code
 ```
 
 ## Develop

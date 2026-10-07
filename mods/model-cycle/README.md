@@ -22,7 +22,7 @@ Paste this into a Claude Code session and it does the rest:
 ```text
 Install the Claude Code mod from github.com/PedroLaRosa/claude-code:
 1. Run `claude plugin marketplace add PedroLaRosa/claude-code`, then
-   `claude plugin install model-cycle@pedro-la-rosa-mods`.
+   `claude plugin install model-cycle@pedro-la-rosa-claude-code`.
 2. Merge these into the "Global" bindings of ~/.claude/keybindings.json (create the
    file if missing, keep every existing binding, don't overwrite a key that is already
    bound; tell me about any conflict):
@@ -38,14 +38,14 @@ Install the Claude Code mod from github.com/PedroLaRosa/claude-code:
 
 ```bash
 claude plugin marketplace add PedroLaRosa/claude-code
-claude plugin install model-cycle@pedro-la-rosa-mods
+claude plugin install model-cycle@pedro-la-rosa-claude-code
 ```
 
 Or from inside a session:
 
 ```
 /plugin marketplace add PedroLaRosa/claude-code
-/plugin install model-cycle@pedro-la-rosa-mods
+/plugin install model-cycle@pedro-la-rosa-claude-code
 /reload-plugins
 ```
 
@@ -61,7 +61,7 @@ It merges five keys into `~/.claude/keybindings.json` and never overwrites a key
 
 **Last step: make your terminal send Alt.** On macOS, Option usually types a symbol instead of acting as Alt. Turn on "Option as Alt" in your terminal (iTerm2: Profiles → Keys; Terminal.app: _Use Option as Meta key_; kitty: `macos_option_as_alt yes`). To change only `alt+.` in kitty, leave that setting off and add `map opt+period send_text all \x1b.` to `kitty.conf`.
 
-Update with `claude plugin update model-cycle@pedro-la-rosa-mods`. Remove with `claude plugin uninstall model-cycle@pedro-la-rosa-mods` (and delete the five keys from `keybindings.json`).
+Update with `claude plugin update model-cycle@pedro-la-rosa-claude-code`. Remove with `claude plugin uninstall model-cycle@pedro-la-rosa-claude-code` (and delete the five keys from `keybindings.json`).
 
 ## Keys
 

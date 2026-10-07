@@ -22,7 +22,7 @@ Install the tools with `brew install tmux lazygit` on macOS, or your package man
 
 ```bash
 claude plugin marketplace add PedroLaRosa/claude-code
-claude plugin install lazygit-popup@pedro-la-rosa-mods
+claude plugin install lazygit-popup@pedro-la-rosa-claude-code
 ```
 
 A mod can't ship keybindings, so bind the key yourself. Add this to the `"Global"` bindings in `~/.claude/keybindings.json`:

@@ -35,7 +35,7 @@ Double-check the package is the one you meant. If it is, ask the user to run the
 
 ```bash
 claude plugin marketplace add PedroLaRosa/claude-code
-claude plugin install dep-bouncer@pedro-la-rosa-mods
+claude plugin install dep-bouncer@pedro-la-rosa-claude-code
 ```
 
 Then run `/reload-plugins`.
