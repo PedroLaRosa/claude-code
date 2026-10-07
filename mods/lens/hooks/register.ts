@@ -1,7 +1,6 @@
 import type { EngineInterface, Register, ToolCallResult } from 'claude-code'
 import { type Diag, type Tool, TOOLS, TS, bySeverity, customTool, idOf, keyOf, lineOf, parse, resolvePath, scanSecrets, tally, tscLine } from './lens'
 
-type $ = EngineInterface
 type Plan = { tool: Tool; bin: string; cwd: string; scope: string }
 type Config = { disable: string[]; runners: Tool[] }
 type Watch = {
@@ -58,7 +57,7 @@ const rel = (p: string) => (p.startsWith(`${root}/`) ? p.slice(root.length + 1) 
 const firstLine = (s: string) => s.trim().split('\n')[0]!.slice(0, 200)
 const muted = (d: Diag) => deferred.has(keyOf(d)) || keyOf(d) in falsePositives
 
-function note($: $, text: string) {
+function note($: EngineInterface, text: string) {
   ledger.push(`${new Date().toTimeString().slice(0, 8)} ${text}`)
   if (ledger.length > LEDGER) ledger.shift()
   $.ui.log(`${NAME}: ${text}`, { to: 'debug' })
@@ -69,12 +68,15 @@ function cached<T>(map: Map<string, Promise<T>>, key: string, make: () => Promis
   if (!hit) map.set(key, (hit = make()))
   return hit
 }
-const names = ($: $, dir: string) =>
-  cached(listings, dir, () => $.fs.list(dir).then(entries => new Set(entries.map(e => e.name)), () => new Set<string>()))
-const textOf = ($: $, path: string) => cached(texts, path, () => $.fs.read(path).catch(() => ''))
+function names($: EngineInterface, dir: string) {
+  return cached(listings, dir, () => $.fs.list(dir).then(entries => new Set(entries.map(e => e.name)), () => new Set<string>()))
+}
+function textOf($: EngineInterface, path: string) {
+  return cached(texts, path, () => $.fs.read(path).catch(() => ''))
+}
 
 /** The nearest folder from `dir` up that holds one of `files` (`name#text`: one holding `text`). */
-async function findUp($: $, dir: string, files: readonly string[]): Promise<string | undefined> {
+async function findUp($: EngineInterface, dir: string, files: readonly string[]): Promise<string | undefined> {
   for (let d = dir; ; d = dirname(d)) {
     const here = await names($, d)
     for (const f of files) {
@@ -86,7 +88,7 @@ async function findUp($: $, dir: string, files: readonly string[]): Promise<stri
 }
 
 /** Where `bin` lives for a file in `dir`: a project-local install first, then PATH unless `local`. */
-function resolveBin($: $, bin: string, dir: string, local?: true): Promise<string | null> {
+function resolveBin($: EngineInterface, bin: string, dir: string, local?: true): Promise<string | null> {
   return cached(bins, `${bin}\0${dir}\0${local ?? ''}`, async () => {
     if (bin.includes('/')) return resolvePath(root, bin)
     for (let d = dir; ; d = dirname(d)) {
@@ -101,7 +103,7 @@ function resolveBin($: $, bin: string, dir: string, local?: true): Promise<strin
 }
 
 /** `.lens.json` at the project root: runners to `disable`, and `runners` of the project's own. */
-async function config($: $): Promise<Config> {
+async function config($: EngineInterface): Promise<Config> {
   const text = await $.fs.read(join(root, '.lens.json')).catch(() => undefined)
   if (text === undefined) return { disable: [], runners: [] }
   try {
@@ -117,7 +119,7 @@ async function config($: $): Promise<Config> {
 }
 
 /** The tools that apply to `file`, installed and gated: its checkers, or with `fixers` its fixers. */
-async function plan($: $, file: string, fixers: boolean, cfg: Config): Promise<Plan[]> {
+async function plan($: EngineInterface, file: string, fixers: boolean, cfg: Config): Promise<Plan[]> {
   const dir = dirname(file)
   const plans: Plan[] = []
   for (const tool of [...cfg.runners, ...TOOLS]) {
@@ -153,7 +155,7 @@ function* live() {
   for (const [scope, diags] of known) for (const d of diags) if (!muted(d)) yield { d, scope }
 }
 
-async function runCheck($: $, p: Plan, file: string, before = false): Promise<boolean> {
+async function runCheck($: EngineInterface, p: Plan, file: string, before = false): Promise<boolean> {
   const s = stats.get(p.tool.id) ?? { runs: 0, fails: 0, ms: 0 }
   stats.set(p.tool.id, s)
   s.runs++
@@ -181,14 +183,14 @@ async function runCheck($: $, p: Plan, file: string, before = false): Promise<bo
   }
 }
 
-async function scanFile($: $, file: string, before = false) {
+async function scanFile($: EngineInterface, file: string, before = false) {
   if (/(?:^|\/)\.env(?:\.|$)/.test(file)) return
   const text = await $.fs.read(file).catch(() => undefined) // over 4 MiB: not scanned
   if (text !== undefined) record(`secrets:${file}`, scanSecrets(text, file), before)
 }
 
 /** Takes the "before" picture of an existing file this turn has not edited yet: reused when nothing moved since. */
-async function beforeEdit($: $, file: string, checks: Plan[]) {
+async function beforeEdit($: EngineInterface, file: string, checks: Plan[]) {
   const stat = await $.fs.stat(file).catch(() => undefined)
   if (!stat) return // a new file has no before
   const isUnchanged = checkedAt.get(file) === stat.mtimeMs
@@ -208,7 +210,7 @@ function wakeAll(w: Watch) {
 }
 
 /** Resolves true once `done()` holds, false if `ms` pass first; asked again whenever the watcher moves. */
-function until($: $, w: Watch, done: () => boolean, ms: number): Promise<boolean> {
+function until($: EngineInterface, w: Watch, done: () => boolean, ms: number): Promise<boolean> {
   if (done()) return Promise.resolve(true)
   if (ms <= 0) return Promise.resolve(false)
   return new Promise(resolve => {
@@ -228,7 +230,7 @@ function until($: $, w: Watch, done: () => boolean, ms: number): Promise<boolean
   })
 }
 
-function onTscLine($: $, w: Watch, raw: string) {
+function onTscLine($: EngineInterface, w: Watch, raw: string) {
   const line = raw.trimEnd()
   if (/Starting (?:incremental )?compilation/.test(line)) {
     w.started++
@@ -256,7 +258,7 @@ function onTscLine($: $, w: Watch, raw: string) {
 }
 
 /** The warm `tsc --watch` for `tsconfig`: started on first use, stopped after IDLE_MS without a TypeScript edit. */
-function watch($: $, tsconfig: string, bin: string): Watch {
+function watch($: EngineInterface, tsconfig: string, bin: string): Watch {
   const running = watches.get(tsconfig)
   if (running && running.state !== 'stopped') return keepWarm($, running)
   const dir = dirname(tsconfig)
@@ -283,7 +285,7 @@ function watch($: $, tsconfig: string, bin: string): Watch {
   return keepWarm($, w)
 }
 
-function keepWarm($: $, w: Watch): Watch {
+function keepWarm($: EngineInterface, w: Watch): Watch {
   w.idle?.cancel()
   w.idle = $.clock.after(IDLE_MS, () => {
     note($, `tsc watcher for ${rel(w.tsconfig)} stopped after ${IDLE_MS / 60_000} idle minutes`)
@@ -293,7 +295,7 @@ function keepWarm($: $, w: Watch): Watch {
   return w
 }
 
-async function tscFor($: $, file: string, cfg: Config): Promise<Watch | undefined> {
+async function tscFor($: EngineInterface, file: string, cfg: Config): Promise<Watch | undefined> {
   if (!TS.test(file) || cfg.disable.includes('tsc')) return
   const dir = await findUp($, dirname(file), ['tsconfig.json'])
   if (!dir) return
@@ -303,7 +305,7 @@ async function tscFor($: $, file: string, cfg: Config): Promise<Watch | undefine
 }
 
 /** Waits, inside `ms`, for tsc to finish checking an edit made after cycle `since` began. False: it is late. */
-async function settled($: $, w: Watch, since: number, ms: number): Promise<boolean> {
+async function settled($: EngineInterface, w: Watch, since: number, ms: number): Promise<boolean> {
   // ponytail: a cold first compile is not waited on, its verdict rides a later tool result; a big repo can take a minute
   if (w.state !== 'ready') return w.state === 'stopped'
   const t0 = Date.now()
@@ -348,7 +350,7 @@ function blockers(span: 'turn' | 'session'): Diag[] {
   return held.sort(bySeverity)
 }
 
-function status($: $) {
+function status($: EngineInterface) {
   let errors = 0
   let warnings = 0
   for (const { d } of live()) {
@@ -366,7 +368,7 @@ function withNotes<R extends ToolCallResult>(result: R, ...notes: (string | unde
 }
 
 /** Checks `file` now and lists everything in it, old and new. */
-async function checkNow($: $, file: string, ms: number): Promise<string> {
+async function checkNow($: EngineInterface, file: string, ms: number): Promise<string> {
   if (!(await $.fs.exists(file))) return `${rel(file)} does not exist.`
   const cfg = await config($)
   const checks = await plan($, file, false, cfg)
@@ -407,7 +409,7 @@ function health(): string {
 }
 
 /** Runs the project's fixers, then its formatters, over the files the turn edited. */
-async function tidy($: $, files: string[]) {
+async function tidy($: EngineInterface, files: string[]) {
   const cfg = await config($)
   const groups = new Map<string, { plan: Plan; files: string[] }>()
   const before = new Map<string, number>()
