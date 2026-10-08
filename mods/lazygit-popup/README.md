@@ -2,6 +2,8 @@
 
 A [Claude Code mod](https://code.claude.com/docs): press **alt+g** and [lazygit](https://github.com/jesseduffield/lazygit) opens in a popup over your Claude Code pane. Press **ESC** (or `q`) to quit lazygit and the popup closes.
 
+![lazygit-popup demo: alt+g opens lazygit over Claude Code, ESC closes it](https://raw.githubusercontent.com/PedroLaRosa/claude-code/main/assets/lazygit-popup-demo.gif)
+
 ## Why
 
 I was fed up with opening a new terminal, or switching to different software, just to see a git diff. So I used Claude Code mods to fix it: lazygit opens in the same pane, right over Claude Code.
