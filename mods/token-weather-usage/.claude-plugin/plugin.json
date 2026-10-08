@@ -1,7 +1,7 @@
 {
   "name": "token-weather-usage",
   "version": "0.1.0",
-  "description": "A row of colored pills above the prompt: context tokens with weather, 5h/7d limits vs time elapsed, prompt cache time left, session cost, running subagents. No network, no files, no process access.",
+  "description": "Demo: colored pills above the prompt: context tokens with weather, 5h/7d limits vs time elapsed, prompt cache time left, session cost, running subagents. No network, no files, no process access.",
   "author": {
     "name": "Pedro La Rosa"
   },

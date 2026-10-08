@@ -37,9 +37,9 @@
     {
       "name": "token-weather-usage",
       "source": "./mods/token-weather-usage",
-      "description": "Colored pills above the prompt: context tokens, 5h/7d limits against time elapsed, prompt cache time left, session cost and running subagents.",
+      "description": "Demo: colored pills above the prompt: context tokens, 5h/7d limits against time elapsed, prompt cache time left, session cost and running subagents.",
       "category": "productivity",
-      "keywords": ["usage", "tokens", "context", "cost", "cache", "mod"]
+      "keywords": ["usage", "tokens", "context", "cost", "cache", "mod", "demo"]
     }
   ]
 }

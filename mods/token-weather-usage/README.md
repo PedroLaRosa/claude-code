@@ -1,5 +1,7 @@
 # token-weather-usage
 
+> **Demo.** An exploration of how far a mod can customize the UI, set against the [status line](https://code.claude.com/docs/en/statusline). For day-to-day usage numbers, prefer the status line; see [Mod vs status line](#mod-vs-status-line).
+
 A Claude Code mod that draws two rows of colored pills above the prompt: how full the context is, how long the prompt cache has left, what the session has cost and how many subagents are running; under them, your 5h and 7d plan limits against the time elapsed.
 
 ```
@@ -27,6 +29,17 @@ Answer `y` to add the marketplace, then pick the user scope so it loads in every
 | `✻ agents` | Subagents running now. |
 
 Usage percentages update with each API reply (every turn, or when a window moves a whole point); the time parts redraw every 15 seconds.
+
+## Mod vs status line
+
+| | Status line | This mod |
+| --- | --- | --- |
+| Data | JSON on stdin (`context_window`, `rate_limits`, `cost`) on every refresh | `$.session.usage()` and hook events, read at turn boundaries |
+| Freshness | Updates often (on each change, plus `refreshInterval`) | Usage moves only with API replies; between turns it can lag behind the status line |
+| Layout | Lines of ANSI text in a fixed slot | JSX (`Box`, `Text`, flexbox) in any UI slot, sized to the terminal |
+| Logic | A stateless command run per refresh | Stateful in-process hooks: turn history, per-request cache hits, live subagent list |
+
+In practice the status line was the more reliable source for these numbers, since it refreshed more regularly. The mod wins on what it can draw and compute: any layout JSX can compose, and data the status line JSON does not carry.
 
 ## Privacy
 
