@@ -8,7 +8,7 @@ My [Claude Code](https://code.claude.com/docs) mods, in one plugin marketplace. 
 | [lazygit-popup](mods/lazygit-popup) | alt+g opens lazygit in a popup over Claude Code; ESC closes it. |
 | [lens](mods/lens) | Runs tsc, your linters and a secret scan on every edit, and hands Claude what it broke in the same turn. |
 | [model-effort-switcher](mods/model-effort-switcher) | Switch model, effort and ultracode with one keystroke; shows the model and effort in the footer. |
-| [token-weather-usage](mods/token-weather-usage) | Colored pills above the prompt: context, 5h/7d limits, cache time left, session cost, running subagents. |
+| [token-weather-usage](mods/token-weather-usage) | **Demo:** UI customization compared with the status line. Colored pills above the prompt: context, 5h/7d limits, cache time left, session cost, running subagents. |
 
 ## Install
 
