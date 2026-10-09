@@ -43,7 +43,7 @@ Reports list only what the current turn introduced. Every tool runs once before 
 - **Tidy at turn end.** After a turn, the files it edited go through the project's fixers and formatters, in this order: `eslint --fix`, `biome check --write`, prettier, `ruff check --fix`, `ruff format`, gofmt, rustfmt. Each one runs only if the project configures it. This runs once at the end, never between edits, because a formatter running mid-change fights the edits still being made.
 - **Git guard (off by default).** Denies `git commit` and `git push` while files the session edited still have errors.
 - **Late results.** A tsc check that outlasts the hook's time budget is attached to the next tool result instead.
-- **Status line.** Shows `lens ✗2 ⚠5` for current errors and warnings, or `lens ✓`.
+- **Footer tally.** Shows `lens ✗2 ⚠5` at the right of the prompt footer for current errors and warnings, or `lens ✓`.
 
 ### For Claude
 
@@ -98,7 +98,7 @@ A runner runs the command you give it, just as a hook in `.claude/settings.json`
 | Git guard | Same, off by default |
 | `lens_diagnostics`, `lens_diagnostic_mark` | Same names; dispositions are `false-positive` and `defer` |
 | `/lens-health` and its degradation ledger | Same |
-| Widget and footer tally | Status line |
+| Widget and footer tally | Footer tally, at the right of the prompt |
 | Read-before-edit guard | Not needed: Claude Code's Edit already refuses a file Claude hasn't read |
 | `lsp_navigation` | Not included: Claude Code has an LSP tool |
 | ast-grep and tree-sitter rules, `module_report`, `read_symbol`, `/lens-map`, session-wide gitleaks/trivy/knip scans | Not included |
