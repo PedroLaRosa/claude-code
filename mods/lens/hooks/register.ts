@@ -35,6 +35,7 @@ const GIT_WRITE = /\bgit\s+(?:-C\s+\S+\s+|-\S+\s+)*(?:commit|push)\b/
 let root = '/'
 let falsePositives: Record<string, string> = {}
 let recheck: 'queued' | 'running' | undefined // the guard's one follow-up turn
+let label = '' // the tally drawn at the right of the prompt footer
 const known = new Map<string, Diag[]>()
 const baseline = new Map<string, Set<string>>()
 const checkedAt = new Map<string, number>() // file -> mtime its diagnostics were taken at
@@ -358,7 +359,8 @@ function status($: EngineInterface) {
     if (d.severity === 'error') errors++
     else if (d.severity === 'warning') warnings++
   }
-  $.ui.status(errors || warnings ? `lens ✗${errors} ⚠${warnings}` : 'lens ✓')
+  label = errors || warnings ? `lens ✗${errors} ⚠${warnings}` : 'lens ✓'
+  $.ui.invalidate('ui.render')
 }
 
 /** `result` with lens notes after it, and any tsc verdict that arrived late. */
@@ -516,6 +518,10 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'lens-health' }, () => ({ text: health() }))
+
+  // The tally joins the footer's mode labels, at the right of the prompt.
+  on('ui.render', { component: 'SessionMode' }, ($, e, next) =>
+    next(label ? { ...e, props: { ...e.props, modes: [...e.props.modes, label] } } : e))
 
   on('session.start', async ($, e, next) => {
     const started = await next(e)
