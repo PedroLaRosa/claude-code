@@ -1,6 +1,10 @@
 # claude-code
 
-My [Claude Code](https://code.claude.com/docs) mods, in one plugin marketplace. Each one installs on its own.
+My whole [Claude Code](https://code.claude.com/docs) setup in one repo: mods, plugins, status bar and the rest of how I configure it.
+
+Everything shared so far ships as a plugin marketplace, and each plugin installs on its own.
+
+## Mods
 
 | Plugin | What it does |
 | --- | --- |
