@@ -36,6 +36,7 @@ let root = '/'
 let falsePositives: Record<string, string> = {}
 let recheck: 'queued' | 'running' | undefined // the guard's one follow-up turn
 let label = '' // the tally drawn at the right of the prompt footer
+let isOff = false // ctrl+x l (strip:jump3) or /lens off|on; this session only, a reload turns it back on
 const known = new Map<string, Diag[]>()
 const baseline = new Map<string, Set<string>>()
 const checkedAt = new Map<string, number>() // file -> mtime its diagnostics were taken at
@@ -291,10 +292,23 @@ function keepWarm($: EngineInterface, w: Watch): Watch {
   w.idle?.cancel()
   w.idle = $.clock.after(IDLE_MS, () => {
     $.ui.log(note(`tsc watcher for ${rel(w.tsconfig)} stopped after ${IDLE_MS / 60_000} idle minutes`), { to: 'debug' })
-    w.state = 'stopped'
-    w.stop()
+    stopWatch(w)
   })
   return w
+}
+
+function stopWatch(w: Watch) {
+  w.idle?.cancel()
+  w.state = 'stopped'
+  w.stop()
+}
+
+/** Warms the root project's tsc, so the first edit already has a "before". */
+async function warmRoot($: EngineInterface) {
+  const cfg = await config($)
+  if (cfg.disable.includes('tsc') || !(await names(root, p => $.fs.list(p))).has('tsconfig.json')) return
+  const bin = await resolveBin($, 'tsc', root)
+  if (bin) watch($, join(root, 'tsconfig.json'), bin)
 }
 
 async function tscFor($: EngineInterface, file: string, cfg: Config): Promise<Watch | undefined> {
@@ -359,8 +373,26 @@ function status($: EngineInterface) {
     if (d.severity === 'error') errors++
     else if (d.severity === 'warning') warnings++
   }
-  label = errors || warnings ? `lens ✗${errors} ⚠${warnings}` : 'lens ✓'
+  label = isOff ? 'lens off' : errors || warnings ? `lens ✗${errors} ⚠${warnings}` : 'lens ✓'
   $.ui.invalidate('ui.render')
+}
+
+/** Pauses lens for the session (no checks, guards, tidy or tsc) or resumes it. What it held is dropped:
+ *  edits made while off would leave it stale, tripping the guards once it is back on. Marks stay. */
+function setOff($: EngineInterface, off: boolean) {
+  if (off === isOff) return
+  isOff = off
+  if (isOff) {
+    for (const w of watches.values()) if (w.state !== 'stopped') stopWatch(w)
+    known.clear()
+    baseline.clear()
+    checkedAt.clear()
+    turnFiles.clear()
+    late.length = 0
+    recheck = undefined
+  } else void warmRoot($)
+  status($)
+  $.ui.toast(isOff ? `${NAME} off for this session` : `${NAME} on`)
 }
 
 /** `result` with lens notes after it, and any tsc verdict that arrived late. */
@@ -448,6 +480,7 @@ export const register: Register = (on, options) => {
 
   // Every tool call: the git guard ahead of Bash, the check after Edit and Write, late tsc verdicts after any.
   on('tool.call', async ($, e, next) => {
+    if (isOff) return next(e)
     if (e.tool === 'Bash' && isGitGuard && GIT_WRITE.test(e.command)) {
       const held = blockers('session')
       if (held.length)
@@ -488,6 +521,7 @@ export const register: Register = (on, options) => {
   }).catch(($, e, next) => next(e))
 
   on('tool.call', { tool: 'mcp__lens__lens_diagnostics' }, async ($, e, next) => {
+    if (isOff) return { result: `${NAME} is off for this session (the user turns it on with ctrl+x l or /lens on).` }
     const path = typeof e.path === 'string' && e.path ? resolvePath(root, e.path) : undefined
     return { result: path ? await checkNow($, path, Math.min(next.budget.remainingMs, 60_000) - RESERVE_MS) : summary() }
   })
@@ -509,7 +543,12 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: 'lens' }, async ($, e) => {
-    if (e.args.trim() !== 'clear-marks') return { text: summary() }
+    const arg = e.args.trim()
+    if (arg === 'on' || arg === 'off') {
+      setOff($, arg === 'off')
+      return { text: `${NAME} is ${arg}${isOff ? ' for this session' : ''}.` }
+    }
+    if (arg !== 'clear-marks') return { text: isOff ? `${NAME} is off for this session; ctrl+x l or /lens on turns it back on.` : summary() }
     falsePositives = {}
     deferred.clear()
     await $.store.delete(`fp:${root}`)
@@ -522,6 +561,17 @@ export const register: Register = (on, options) => {
   // The tally joins the footer's mode labels, at the right of the prompt.
   on('ui.render', { component: 'SessionMode' }, ($, e, next) =>
     next(label ? { ...e, props: { ...e.props, modes: [...e.props.modes, label] } } : e))
+
+  // ctrl+x l turns lens off and on. A key reaches a mod only through a Button in the band above the prompt
+  // naming an engine action, so ~/.claude/keybindings.json binds it to strip:jump3 and a hidden Button takes it.
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    // The band is shared: what draws there beneath stays, the Button hides beside it.
+    const below = await next(e)
+    const { Box, Button } = $.ui.resolve(e)
+    return Box({ flexDirection: 'column', children: [below, Box({ display: 'none', children: [
+      Button({ key: 'lens-toggle', label: 'lens on/off', action: 'strip:jump3', onPress: () => setOff($, !isOff) }),
+    ] })] })
+  })
 
   on('session.start', async ($, e, next) => {
     const started = await next(e)
@@ -552,15 +602,10 @@ export const register: Register = (on, options) => {
           required: ['id', 'disposition', 'reason'],
         },
       }),
-      $.command.register({ name: 'lens', description: 'Diagnostics lens holds for this session', argumentHint: '[clear-marks]' }),
+      $.command.register({ name: 'lens', description: 'Diagnostics lens holds for this session · ctrl+x l or "off"/"on" pauses it', argumentHint: '[on|off|clear-marks]' }),
       $.command.register({ name: 'lens-health', description: 'lens runners, tsc watchers and recent degradations' }),
     ])
-    // Warm the root project's tsc now, so the first edit already has a "before".
-    const cfg = await config($)
-    if (!cfg.disable.includes('tsc') && (await names(root, p => $.fs.list(p))).has('tsconfig.json')) {
-      const bin = await resolveBin($, 'tsc', root)
-      if (bin) watch($, join(root, 'tsconfig.json'), bin)
-    }
+    await warmRoot($)
     return started
   }).catch(($, e, next) => next(e))
 
@@ -584,7 +629,7 @@ export const register: Register = (on, options) => {
   // ponytail: a follow-up prompt, not a classic.Stop block: the built-in security plugin skips user-tier Stop hooks.
   on('turn.complete', async ($, e, next) => {
     const result = await next(e)
-    if (e.agentId !== undefined || e.reason !== 'answer') return result
+    if (e.agentId !== undefined || e.reason !== 'answer' || isOff) return result
     if (isStopGuard && recheck === undefined) {
       const ms = Math.min(next.budget.remainingMs, 60_000) - RESERVE_MS
       await Promise.all([...watches.values()].map(w => until($, w, () => w.state !== 'starting' && w.finished >= w.started, ms)))
