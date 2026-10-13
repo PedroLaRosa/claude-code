@@ -36,7 +36,7 @@ let root = '/'
 let falsePositives: Record<string, string> = {}
 let recheck: 'queued' | 'running' | undefined // the guard's one follow-up turn
 let label = '' // the tally drawn at the right of the prompt footer
-let isOff = false // ctrl+x l (strip:jump3) or /lens off|on; this session only, a reload turns it back on
+let isOff = false // the person's strip:jump3 key or /lens off|on; this session only, a reload turns it back on
 const known = new Map<string, Diag[]>()
 const baseline = new Map<string, Set<string>>()
 const checkedAt = new Map<string, number>() // file -> mtime its diagnostics were taken at
@@ -521,7 +521,7 @@ export const register: Register = (on, options) => {
   }).catch(($, e, next) => next(e))
 
   on('tool.call', { tool: 'mcp__lens__lens_diagnostics' }, async ($, e, next) => {
-    if (isOff) return { result: `${NAME} is off for this session (the user turns it on with ctrl+x l or /lens on).` }
+    if (isOff) return { result: `${NAME} is off for this session (the user turns it on with their lens key or /lens on).` }
     const path = typeof e.path === 'string' && e.path ? resolvePath(root, e.path) : undefined
     return { result: path ? await checkNow($, path, Math.min(next.budget.remainingMs, 60_000) - RESERVE_MS) : summary() }
   })
@@ -548,7 +548,7 @@ export const register: Register = (on, options) => {
       setOff($, arg === 'off')
       return { text: `${NAME} is ${arg}${isOff ? ' for this session' : ''}.` }
     }
-    if (arg !== 'clear-marks') return { text: isOff ? `${NAME} is off for this session; ctrl+x l or /lens on turns it back on.` : summary() }
+    if (arg !== 'clear-marks') return { text: isOff ? `${NAME} is off for this session; your lens key or /lens on turns it back on.` : summary() }
     falsePositives = {}
     deferred.clear()
     await $.store.delete(`fp:${root}`)
@@ -562,8 +562,8 @@ export const register: Register = (on, options) => {
   on('ui.render', { component: 'SessionMode' }, ($, e, next) =>
     next(label ? { ...e, props: { ...e.props, modes: [...e.props.modes, label] } } : e))
 
-  // ctrl+x l turns lens off and on. A key reaches a mod only through a Button in the band above the prompt
-  // naming an engine action, so ~/.claude/keybindings.json binds it to strip:jump3 and a hidden Button takes it.
+  // A key of the person's choosing (ctrl+x l suggested) turns lens off and on. A key reaches a mod only through a Button
+  // in the band above the prompt naming an engine action, so ~/.claude/keybindings.json binds it to strip:jump3 and a hidden Button takes it.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     // The band is shared: what draws there beneath stays, the Button hides beside it.
     const below = await next(e)
@@ -602,7 +602,7 @@ export const register: Register = (on, options) => {
           required: ['id', 'disposition', 'reason'],
         },
       }),
-      $.command.register({ name: 'lens', description: 'Diagnostics lens holds for this session · ctrl+x l or "off"/"on" pauses it', argumentHint: '[on|off|clear-marks]' }),
+      $.command.register({ name: 'lens', description: 'Diagnostics lens holds for this session · "off"/"on" (or a key bound to strip:jump3) pauses it', argumentHint: '[on|off|clear-marks]' }),
       $.command.register({ name: 'lens-health', description: 'lens runners, tsc watchers and recent degradations' }),
     ])
     await warmRoot($)
