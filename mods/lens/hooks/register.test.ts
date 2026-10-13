@@ -1,4 +1,4 @@
-import type { On } from 'claude-code'
+import type { On, RenderElement, RenderPropsOf } from 'claude-code'
 import type { Engine } from 'claude-code/testing'
 import { expect, mock, test } from 'claude-code/testing'
 import { customTool, parse, resolvePath, scanSecrets, splitMessage, tscLine } from './lens'
@@ -224,4 +224,33 @@ test('the turn ends with the project formatter over the files it edited', async 
   await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
   await clock.advance(0)
   expect(ran).toContainEqual(['/repo/node_modules/.bin/prettier', '--write', '--log-level', 'warn', '/repo/src/a.ts'])
+})
+
+const BAND: RenderPropsOf['AbovePrompt'] = {
+  hasSurvey: false,
+  isWorking: false,
+  maxRows: 20,
+  bodyColumns: 120,
+  scroll: { offset: 0, bodyRows: 19 },
+  view: {},
+}
+
+test('ctrl+x l turns lens off for the session, and on again', async ($, on) => {
+  const { ran, toasts, sent, clock } = world(on)
+  on('ui.render', { component: 'AbovePrompt' }, (): RenderElement => ({ type: 'Box', children: [] }))
+  await start($)
+  const band = await $.ui.mount({ plugin: 'lens', surface: 'terminal', component: 'AbovePrompt', props: BAND })
+
+  await band.press({ key: 'lens-toggle' })
+  expect(toasts.at(-1)).toBe('lens off for this session')
+  const before = ran.length
+  expect((await edit($, 'name: string) => name', 'name: number) => name == 1')).context).toBeUndefined()
+  expect(ran.length).toBe(before) // no checker ran
+  await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+  await clock.advance(0)
+  expect([ran.length, sent]).toEqual([before, []]) // no guard, no tidy
+
+  await band.press({ key: 'lens-toggle' })
+  expect(toasts.at(-1)).toBe('lens on')
+  expect((await edit($, 'name == 1', 'name === 1')).context?.join('\n')).toMatch(/^\[lens\] src\/a\.ts/)
 })

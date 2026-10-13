@@ -53,6 +53,7 @@ Reports list only what the current turn introduced. Every tool runs once before 
 ### For you
 
 - `/lens` lists every finding in the session. `/lens clear-marks` removes all false-positive and defer marks.
+- `ctrl+x l` turns lens off for the rest of the session: no checks, guards, tidy or tsc watchers, and the footer shows `lens off`. Press it again to turn lens back on. `/lens off` and `/lens on` do the same. A new session or `/reload-plugins` starts with lens on.
 - `/lens-health` shows the tsc watchers, how often each runner ran and failed and its average time, tools that aren't installed, and recent degradations (crashes, timeouts, stopped watchers).
 
 ## Config
@@ -110,6 +111,12 @@ A runner runs the command you give it, just as a hook in `.claude/settings.json`
 ```
 
 Answer `y` to add the marketplace, then pick the user scope so it loads in every session.
+
+For the on/off key, add this to the `"Global"` bindings in `~/.claude/keybindings.json` (a mod can't ship keybindings), then run `/reload-plugins`:
+
+```json
+"ctrl+x l": "strip:jump3"
+```
 
 Requirements: Claude Code with mods (built on 2.1.291), plus whichever of the tools above your projects use.
 
