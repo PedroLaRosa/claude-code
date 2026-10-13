@@ -53,7 +53,7 @@ Reports list only what the current turn introduced. Every tool runs once before 
 ### For you
 
 - `/lens` lists every finding in the session. `/lens clear-marks` removes all false-positive and defer marks.
-- `ctrl+x l` turns lens off for the rest of the session: no checks, guards, tidy or tsc watchers, and the footer shows `lens off`. Press it again to turn lens back on. `/lens off` and `/lens on` do the same. A new session or `/reload-plugins` starts with lens on.
+- The on/off key (one you bind yourself, `ctrl+x l` suggested; see [Bind the on/off key](#bind-the-onoff-key-optional)) turns lens off for the rest of the session: no checks, guards, tidy or tsc watchers, and the footer shows `lens off`. Press it again to turn lens back on. `/lens off` and `/lens on` do the same. A new session or `/reload-plugins` starts with lens on.
 - `/lens-health` shows the tsc watchers, how often each runner ran and failed and its average time, tools that aren't installed, and recent degradations (crashes, timeouts, stopped watchers).
 
 ## Config
@@ -112,13 +112,17 @@ A runner runs the command you give it, just as a hook in `.claude/settings.json`
 
 Answer `y` to add the marketplace, then pick the user scope so it loads in every session.
 
-For the on/off key, add this to the `"Global"` bindings in `~/.claude/keybindings.json` (a mod can't ship keybindings), then run `/reload-plugins`:
+Requirements: Claude Code with mods (built on 2.1.291), plus whichever of the tools above your projects use.
+
+### Bind the on/off key (optional)
+
+A mod can't ship keybindings, so you choose the key. Bind any key you like to the action `strip:jump3` in the `"Global"` bindings of `~/.claude/keybindings.json`, then run `/reload-plugins`. A good default is `ctrl+x l`:
 
 ```json
 "ctrl+x l": "strip:jump3"
 ```
 
-Requirements: Claude Code with mods (built on 2.1.291), plus whichever of the tools above your projects use.
+`ctrl+x l` is only a suggestion. Use whatever combination fits your setup; just keep the action `strip:jump3`, because that's the one lens listens for. Pick a key your terminal, tmux and your other keybindings don't already use. On macOS, an `alt+` key works only when your terminal sends Option as Alt, and `cmd+` keys rarely reach a terminal app at all. With no key bound, `/lens off` and `/lens on` do the same thing.
 
 ## Hack on it
 

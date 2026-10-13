@@ -235,7 +235,7 @@ const BAND: RenderPropsOf['AbovePrompt'] = {
   view: {},
 }
 
-test('ctrl+x l turns lens off for the session, and on again', async ($, on) => {
+test('the strip:jump3 key turns lens off for the session, and on again', async ($, on) => {
   const { ran, toasts, sent, clock } = world(on)
   on('ui.render', { component: 'AbovePrompt' }, (): RenderElement => ({ type: 'Box', children: [] }))
   await start($)
